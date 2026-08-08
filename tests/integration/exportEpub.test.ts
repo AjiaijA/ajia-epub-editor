@@ -14,7 +14,15 @@ import {
   editedFileName,
   exportEpubSession,
 } from '../../src/epub/exporter/exportEpub.js'
+import {
+  getCurrentNavigation,
+  renameNavigationLabel,
+} from '../../src/epub/navigation/tocEditor.js'
 import { openEpubPublication } from '../../src/epub/parser/publication.js'
+import {
+  replaceAllSearchResults,
+  searchBodyText,
+} from '../../src/epub/search/textSearch.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
 describe('preserve-first EPUB export', () => {
@@ -101,5 +109,36 @@ describe('preserve-first EPUB export', () => {
     expect(reopened.chapters[0]?.originalSource).toContain(
       '阶段三安全编辑的 &amp; &lt;句子&gt;',
     )
+  })
+
+  it('exports atomic book replacement and synchronized TOC labels while preserving clean payloads', async () => {
+    const originalArchive = await buildFixtureArchive('epub3-nav')
+    const originalEntries = extractArchive(originalArchive)
+    const publication = openEpubPublication(originalArchive, 'phase-4.epub')
+    const initial = createEditSession(publication)
+    const results = searchBodyText(initial, '章', 'book')
+    const replaced = replaceAllSearchResults(initial, results, '篇')
+    const tocItem = getCurrentNavigation(replaced).items[1]
+    if (tocItem === undefined) throw new Error('Navigation item missing')
+    const renamed = renameNavigationLabel(replaced, tocItem, '第二篇').session
+
+    const exported = exportEpubSession(renamed)
+    const exportedEntries = extractArchive(exported.bytes)
+    const changedPaths = new Set(renamed.modifiedEntries.keys())
+    expect(changedPaths.size).toBe(4)
+    for (const [path, payload] of originalEntries) {
+      if (changedPaths.has(path)) {
+        expect(exportedEntries.get(path), path).not.toEqual(payload)
+      } else {
+        expect(exportedEntries.get(path), path).toEqual(payload)
+      }
+    }
+
+    const reopened = openEpubPublication(exported.bytes, exported.fileName)
+    expect(reopened.navigation.items[1]?.label).toBe('第二篇')
+    expect(reopened.navigation.alternateItems[1]?.label).toBe('第二篇')
+    expect(
+      searchBodyText(createEditSession(reopened), '章', 'book'),
+    ).toHaveLength(0)
   })
 })

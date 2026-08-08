@@ -1,6 +1,23 @@
 # Compatibility
 
-Status: Phase 3 automated and browser safe-edit evidence recorded on 2026-08-08.
+Status: Phase 4 automated and Chromium interaction evidence recorded on 2026-08-08; private CI evidence pending final milestone verification.
+
+## Phase 4 search, history, and TOC matrix
+
+| Behavior                   | Evidence                                                        | Result |
+| -------------------------- | --------------------------------------------------------------- | ------ |
+| Body-only search           | Attributes and head content excluded                            | Pass   |
+| Inline boundary            | Query is not guessed across separate text nodes                 | Pass   |
+| Replace current            | Exact revision-bound result patched                             | Pass   |
+| Stale result               | Intervening edit rejects replacement                            | Pass   |
+| Atomic Replace All         | Multi-chapter change commits as one transaction or none         | Pass   |
+| Undo/Redo                  | Multi-entry replacement restores and reapplies in one action    | Pass   |
+| EPUB 2 NCX label           | One label token changes; target is retained                     | Pass   |
+| EPUB 3 NAV + NCX           | Unique normalized target synchronizes both sources              | Pass   |
+| Repeated TOC rename        | Current overlay is reparsed and both sources resynchronize      | Pass   |
+| Phase 4 export             | Chapters/NAV/NCX reopen; every clean payload is byte-identical  | Pass   |
+| UI controls                | Search scopes/results/navigation, history, and TOC label editor | Pass   |
+| Chromium local interaction | NCX rename → Undo/Redo → special-character Replace All → export | Pass   |
 
 ## Phase 3 safe visual-edit matrix
 
@@ -92,15 +109,17 @@ editing implementation and passed EPUBCheck 5.3.0.
 
 ## Not yet claimed
 
-Phase 3 does not yet claim full coverage for BOM package fixtures, ZIP64,
+Phase 4 does not yet claim full coverage for BOM package fixtures, ZIP64,
 legacy CP437 filename encoding, all EPUB namespace variants, deeply malformed
 but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
 Apple Books, Calibre and a browser-engine reader smoke test remain release
-requirements. Phase 3 also does not certify fixed-layout fidelity, SVG/MathML
-visual editing, navigation rewrites, search/replace, or application history.
+requirements. Phase 4 also does not certify fixed-layout fidelity, SVG/MathML
+visual editing, large-book search responsiveness, or ambiguous/structurally
+complex navigation label rewrites. Those cases intentionally remain read-only
+or warning paths.
 
 The broader fixture matrix in `product-requirements.md` remains the acceptance
 target and must not be inferred from this single passing fixture.

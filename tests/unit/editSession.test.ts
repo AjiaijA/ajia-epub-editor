@@ -4,7 +4,9 @@ import {
   commitChapterSource,
   createEditSession,
   getChapterSource,
+  redoEdit,
   SourceValidationError,
+  undoEdit,
 } from '../../src/epub/editor/editSession.js'
 import { openEpubPublication } from '../../src/epub/parser/publication.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
@@ -31,6 +33,13 @@ describe('source edit session', () => {
     expect(chapter.originalBytes).toEqual(originalBytes)
     expect(session.dirtyEntries.size).toBe(0)
     expect(edited.transactions).toHaveLength(1)
+
+    const undone = undoEdit(edited)
+    expect(getChapterSource(undone, chapter.archivePath)).toBe(
+      chapter.originalSource,
+    )
+    expect(undone.dirtyEntries.size).toBe(0)
+    expect(getChapterSource(redoEdit(undone), chapter.archivePath)).toBe(source)
   })
 
   it('rejects malformed XML atomically', async () => {

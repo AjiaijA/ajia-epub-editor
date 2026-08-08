@@ -44,24 +44,27 @@ export interface ChapterDocument {
   readonly visualEditCapability: 'readonly' | 'safe' | 'source-only'
 }
 
-export interface SourceEditTransaction {
+export interface EntrySourceChange {
+  readonly afterBytes: Uint8Array
   readonly afterSource: string
+  readonly beforeBytes: Uint8Array
   readonly beforeSource: string
-  readonly chapterPath: string
-  readonly revision: number
-  readonly type: 'source-edit'
+  readonly path: string
 }
 
-export interface TextEditTransaction {
-  readonly afterText: string
-  readonly beforeText: string
-  readonly chapterPath: string
+export interface EditTransaction {
+  readonly changes: readonly EntrySourceChange[]
+  readonly id: string
   readonly revision: number
-  readonly segmentId: string
-  readonly type: 'text-edit'
+  readonly summary: string
+  readonly timestamp: number
+  readonly type:
+    | 'replace-all'
+    | 'replace-current'
+    | 'source-edit'
+    | 'text-edit'
+    | 'toc-label'
 }
-
-export type EditTransaction = SourceEditTransaction | TextEditTransaction
 
 export interface EpubEditSession {
   readonly chapterRevisions: ReadonlyMap<string, number>
@@ -69,6 +72,7 @@ export interface EpubEditSession {
   readonly dirtyEntries: ReadonlySet<string>
   readonly modifiedEntries: ReadonlyMap<string, Uint8Array>
   readonly publication: EpubPublication
+  readonly redoTransactions: readonly EditTransaction[]
   readonly revision: number
   readonly transactions: readonly EditTransaction[]
 }

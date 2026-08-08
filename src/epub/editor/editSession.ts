@@ -1,9 +1,11 @@
 import type {
   ChapterDocument,
+  EditTransaction,
+  EntrySourceChange,
   EpubEditSession,
   EpubPublication,
 } from '../../models/publication.js'
-import { encodeUtf8Xml, parseXml } from '../parser/xml.js'
+import { decodeUtf8Xml, encodeUtf8Xml, parseXml } from '../parser/xml.js'
 import {
   applySafeTextPatch,
   findSafeVisualTextSegments,
@@ -18,6 +20,11 @@ export class SourceValidationError extends Error {
     this.name = 'SourceValidationError'
     this.chapterPath = chapterPath
   }
+}
+
+export interface SourceChangeInput {
+  readonly afterSource: string
+  readonly path: string
 }
 
 export function createEditSession(
@@ -36,6 +43,7 @@ export function createEditSession(
     dirtyEntries: new Set(),
     modifiedEntries: new Map(),
     publication,
+    redoTransactions: [],
     revision: 0,
     transactions: [],
   }
@@ -48,6 +56,15 @@ export function getChapterSource(
   const source = session.currentSources.get(chapterPath)
   if (source === undefined) throw new Error(`章节不存在：${chapterPath}`)
   return source
+}
+
+export function getEntrySource(session: EpubEditSession, path: string): string {
+  const current = session.currentSources.get(path)
+  if (current !== undefined) return current
+  const entry = session.publication.archive.entries.get(path)
+  if (entry === undefined) throw new Error(`Entry 不存在：${path}`)
+  return decodeUtf8Xml(session.modifiedEntries.get(path) ?? entry.originalData)
+    .source
 }
 
 export function commitChapterSource(
@@ -63,48 +80,12 @@ export function commitChapterSource(
     )
   }
   validateChapterSource(chapterPath, source)
-
-  const beforeSource = getChapterSource(session, chapterPath)
-  if (beforeSource === source) return session
-  const currentSources = new Map(session.currentSources)
-  const modifiedEntries = new Map(session.modifiedEntries)
-  const dirtyEntries = new Set(session.dirtyEntries)
-  currentSources.set(chapterPath, source)
-
-  if (source === chapter.originalSource) {
-    modifiedEntries.delete(chapterPath)
-    dirtyEntries.delete(chapterPath)
-  } else {
-    modifiedEntries.set(
-      chapterPath,
-      encodeUtf8Xml(source, chapter.sourceEncoding),
-    )
-    dirtyEntries.add(chapterPath)
-  }
-  const revision = session.revision + 1
-  const chapterRevisions = new Map(session.chapterRevisions)
-  chapterRevisions.set(
-    chapterPath,
-    (chapterRevisions.get(chapterPath) ?? 0) + 1,
+  return commitSourceChanges(
+    session,
+    [{ afterSource: source, path: chapterPath }],
+    'source-edit',
+    `修改章节源码：${chapter.title}`,
   )
-  return {
-    chapterRevisions,
-    currentSources,
-    dirtyEntries,
-    modifiedEntries,
-    publication: session.publication,
-    revision,
-    transactions: [
-      ...session.transactions,
-      {
-        afterSource: source,
-        beforeSource,
-        chapterPath,
-        revision,
-        type: 'source-edit',
-      },
-    ],
-  }
 }
 
 export function getChapterTextSegments(
@@ -140,49 +121,87 @@ export function commitVisualText(
       '可视编辑位置已经失效，请刷新章节后重试。',
     )
   }
-  if (segment.decodedText === replacement) return session
   const patched = applySafeTextPatch(
     getChapterSource(session, chapterPath),
     segment,
     replacement,
     chapterRevision,
   )
-  const currentSources = new Map(session.currentSources)
-  const modifiedEntries = new Map(session.modifiedEntries)
-  const dirtyEntries = new Set(session.dirtyEntries)
-  const chapterRevisions = new Map(session.chapterRevisions)
-  currentSources.set(chapterPath, patched.source)
-  if (patched.source === chapter.originalSource) {
-    modifiedEntries.delete(chapterPath)
-    dirtyEntries.delete(chapterPath)
-  } else {
-    modifiedEntries.set(
-      chapterPath,
-      encodeUtf8Xml(patched.source, chapter.sourceEncoding),
-    )
-    dirtyEntries.add(chapterPath)
+  return commitSourceChanges(
+    session,
+    [{ afterSource: patched.source, path: chapterPath }],
+    'text-edit',
+    `修改正文：${chapter.title}`,
+  )
+}
+
+export function commitSourceChanges(
+  session: EpubEditSession,
+  inputs: readonly SourceChangeInput[],
+  type: EditTransaction['type'],
+  summary: string,
+): EpubEditSession {
+  const uniquePaths = new Set(inputs.map((input) => input.path))
+  if (uniquePaths.size !== inputs.length) {
+    throw new Error('同一 transaction 不能重复修改同一 entry。')
   }
+  const changes: EntrySourceChange[] = []
+  for (const input of inputs) {
+    const beforeSource = getEntrySource(session, input.path)
+    if (beforeSource === input.afterSource) continue
+    validateEntrySource(session, input.path, input.afterSource)
+    const entry = session.publication.archive.entries.get(input.path)
+    if (entry === undefined) throw new Error(`Entry 不存在：${input.path}`)
+    const encoding = encodingForPath(session, input.path)
+    changes.push({
+      afterBytes: encodeUtf8Xml(input.afterSource, encoding),
+      afterSource: input.afterSource,
+      beforeBytes:
+        session.modifiedEntries.get(input.path) ?? entry.originalData,
+      beforeSource,
+      path: input.path,
+    })
+  }
+  if (changes.length === 0) return session
   const revision = session.revision + 1
-  chapterRevisions.set(chapterPath, chapterRevision + 1)
-  return {
-    chapterRevisions,
-    currentSources,
-    dirtyEntries,
-    modifiedEntries,
-    publication: session.publication,
+  const transaction: EditTransaction = {
+    changes,
+    id: `transaction-${String(revision)}`,
     revision,
-    transactions: [
-      ...session.transactions,
-      {
-        afterText: replacement,
-        beforeText: segment.decodedText,
-        chapterPath,
-        revision,
-        segmentId,
-        type: 'text-edit',
-      },
-    ],
+    summary,
+    timestamp: Date.now(),
+    type,
   }
+  return applyChanges(session, changes, {
+    redoTransactions: [],
+    revision,
+    transactions: [...session.transactions, transaction],
+  })
+}
+
+export function undoEdit(session: EpubEditSession): EpubEditSession {
+  const transaction = session.transactions.at(-1)
+  if (transaction === undefined) return session
+  const inverse = transaction.changes.map((change) => ({
+    ...change,
+    afterBytes: change.beforeBytes,
+    afterSource: change.beforeSource,
+  }))
+  return applyChanges(session, inverse, {
+    redoTransactions: [transaction, ...session.redoTransactions],
+    revision: session.revision + 1,
+    transactions: session.transactions.slice(0, -1),
+  })
+}
+
+export function redoEdit(session: EpubEditSession): EpubEditSession {
+  const transaction = session.redoTransactions[0]
+  if (transaction === undefined) return session
+  return applyChanges(session, transaction.changes, {
+    redoTransactions: session.redoTransactions.slice(1),
+    revision: session.revision + 1,
+    transactions: [...session.transactions, transaction],
+  })
 }
 
 export function validateChapterSource(
@@ -206,6 +225,73 @@ export function validateChapterSource(
   }
 }
 
+function applyChanges(
+  session: EpubEditSession,
+  changes: readonly EntrySourceChange[],
+  history: Pick<
+    EpubEditSession,
+    'redoTransactions' | 'revision' | 'transactions'
+  >,
+): EpubEditSession {
+  const currentSources = new Map(session.currentSources)
+  const modifiedEntries = new Map(session.modifiedEntries)
+  const dirtyEntries = new Set(session.dirtyEntries)
+  const chapterRevisions = new Map(session.chapterRevisions)
+  for (const change of changes) {
+    const original = session.publication.archive.entries.get(change.path)
+    if (original === undefined) throw new Error(`Entry 不存在：${change.path}`)
+    currentSources.set(change.path, change.afterSource)
+    if (byteEqual(change.afterBytes, original.originalData)) {
+      modifiedEntries.delete(change.path)
+      dirtyEntries.delete(change.path)
+    } else {
+      modifiedEntries.set(change.path, change.afterBytes)
+      dirtyEntries.add(change.path)
+    }
+    if (chapterRevisions.has(change.path)) {
+      chapterRevisions.set(
+        change.path,
+        (chapterRevisions.get(change.path) ?? 0) + 1,
+      )
+    }
+  }
+  return {
+    chapterRevisions,
+    currentSources,
+    dirtyEntries,
+    modifiedEntries,
+    publication: session.publication,
+    ...history,
+  }
+}
+
+function validateEntrySource(
+  session: EpubEditSession,
+  path: string,
+  source: string,
+): void {
+  if (
+    session.publication.chapters.some((chapter) => chapter.archivePath === path)
+  ) {
+    validateChapterSource(path, source)
+  } else {
+    parseXml(source, path)
+  }
+}
+
+function encodingForPath(
+  session: EpubEditSession,
+  path: string,
+): 'utf-8' | 'utf-8-bom' {
+  const chapter = session.publication.chapters.find(
+    (candidate) => candidate.archivePath === path,
+  )
+  if (chapter !== undefined) return chapter.sourceEncoding
+  const entry = session.publication.archive.entries.get(path)
+  if (entry === undefined) throw new Error(`Entry 不存在：${path}`)
+  return decodeUtf8Xml(entry.originalData).encoding
+}
+
 function findChapter(
   publication: EpubPublication,
   chapterPath: string,
@@ -215,4 +301,11 @@ function findChapter(
   )
   if (chapter === undefined) throw new Error(`章节不存在：${chapterPath}`)
   return chapter
+}
+
+function byteEqual(left: Uint8Array, right: Uint8Array): boolean {
+  return (
+    left.byteLength === right.byteLength &&
+    left.every((value, index) => value === right[index])
+  )
 }

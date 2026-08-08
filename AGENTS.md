@@ -6,18 +6,18 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 
 ## Current milestone
 
-Phases 0 through 2 are complete. The user authorized Phase 3 on 2026-08-08.
-Work only on Phase 3 until the user explicitly authorizes the next phase:
+Phases 0 through 3 are complete. The user authorized Phase 4 on 2026-08-08.
+Work only on Phase 4 until the user explicitly authorizes the next phase:
 
-1. Build XML-aware body text segments with revision-bound IDs and source offsets.
-2. Apply visual edits only through minimal, XML-escaped source patches with structure fingerprints.
-3. Add a safe visual-edit surface with composition, beforeinput, paste, and drop controls.
-4. Re-tokenize after every accepted source or visual edit and invalidate stale segment IDs.
-5. Cover single-character, sentence, special-character, complex inline, stale, paste, and Chinese IME cases.
-6. Run the full export/EPUBCheck regression suite and write a Phase 3 report.
+1. Add current-chapter and whole-book body-text search with stale-result protection.
+2. Add replace-current and atomic Replace All using only verified text segments.
+3. Add application Undo/Redo for source, visual, replace, and toc-label transactions.
+4. Add minimal-patch NAV/NCX label editing with target-based synchronization and warnings.
+5. Add UI for search results, replacement previews, toc labels, history availability, and summaries.
+6. Run full preservation/export/EPUBCheck regressions and write a Phase 4 report.
 
-Do not add search/replace, navigation editing, application Undo/Redo, public
-deployment, backend, telemetry, or AI during Phase 3.
+Do not add public deployment, release packaging, backend, telemetry, or AI
+during Phase 4.
 
 ## Non-negotiable constraints
 

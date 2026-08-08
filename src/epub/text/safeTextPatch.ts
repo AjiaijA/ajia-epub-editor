@@ -43,6 +43,23 @@ export function findChapterTextSegments(
   chapterPath: string,
   sourceRevision: number,
 ): readonly TextSegment[] {
+  return findXmlTextSegments(source, chapterPath, sourceRevision, true)
+}
+
+export function findAllXmlTextSegments(
+  source: string,
+  documentPath: string,
+  sourceRevision: number,
+): readonly TextSegment[] {
+  return findXmlTextSegments(source, documentPath, sourceRevision, false)
+}
+
+function findXmlTextSegments(
+  source: string,
+  chapterPath: string,
+  sourceRevision: number,
+  requireBody: boolean,
+): readonly TextSegment[] {
   const document = parseXml(source)
   const tokens = tokenizeXmlSource(source)
   const stack: string[] = []
@@ -57,7 +74,11 @@ export function findChapterTextSegments(
 
     const bodyIndex = stack.lastIndexOf('body')
     const excluded = stack.some((name) => name === 'script' || name === 'style')
-    if (bodyIndex !== -1 && !excluded && token.raw.length > 0) {
+    if (
+      (!requireBody || bodyIndex !== -1) &&
+      !excluded &&
+      token.raw.length > 0
+    ) {
       const decodedText = decodeXmlText(token.raw)
       if (decodedText.trim().length === 0) continue
       sourceSegments.push({
@@ -72,7 +93,7 @@ export function findChapterTextSegments(
       })
     }
   }
-  const domTextNodes = collectEditableDomTextNodes(document)
+  const domTextNodes = collectEditableDomTextNodes(document, requireBody)
   if (
     domTextNodes.length !== sourceSegments.length ||
     domTextNodes.some(
@@ -203,6 +224,7 @@ export function createStructuralFingerprint(source: string): string {
 
 function collectEditableDomTextNodes(
   document: Document,
+  requireBody: boolean,
 ): readonly { readonly path: readonly number[]; readonly text: string }[] {
   const root = document.documentElement
   if (root === null) return []
@@ -217,7 +239,11 @@ function collectEditableDomTextNodes(
     const name = (element?.localName ?? element?.tagName ?? '').toLowerCase()
     const nextInsideBody = insideBody || name === 'body'
     const nextExcluded = excluded || name === 'script' || name === 'style'
-    if (node.nodeType === 3 && nextInsideBody && !nextExcluded) {
+    if (
+      node.nodeType === 3 &&
+      (!requireBody || nextInsideBody) &&
+      !nextExcluded
+    ) {
       const text = node.nodeValue ?? ''
       if (text.trim().length > 0) output.push({ path, text })
     }

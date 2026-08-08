@@ -4,7 +4,7 @@ interface NavigationTreeProps {
   readonly activePath: string | null
   readonly availablePaths: ReadonlySet<string>
   readonly items: readonly NavigationItem[]
-  readonly onSelect: (path: string) => void
+  readonly onSelect: (path: string, item: NavigationItem) => void
 }
 
 export function NavigationTree({
@@ -54,7 +54,7 @@ function TreeLevel({
               className="toc-button"
               disabled={disabled}
               onClick={() => {
-                if (path !== null) onSelect(path)
+                if (path !== null) onSelect(path, item)
               }}
               style={{ '--tree-level': level } as React.CSSProperties}
               type="button"

@@ -8,8 +8,8 @@ import { describe, expect, it } from 'vitest'
 import { App } from '../../src/app/App.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
-describe('Phase 3 safe visual editor app', () => {
-  it('opens a local EPUB and exposes safe, source, preview, and export modes', async () => {
+describe('Phase 4 editing app', () => {
+  it('opens a local EPUB and exposes search, history, TOC, editing, and export controls', async () => {
     const bytes = await buildFixtureArchive('epub3-nav')
     const fileBuffer = bytes.slice().buffer
     const file = new File([fileBuffer], '阶段一.epub', {
@@ -39,8 +39,18 @@ describe('Phase 3 safe visual editor app', () => {
       'sandbox',
       '',
     )
-    expect(screen.getByText(/阶段 3 · 原文件永不覆盖/u)).toBeVisible()
+    expect(screen.getByText(/尚无修改 · 阶段 4/u)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '查找替换' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '导出 EPUB' })).toBeEnabled()
+
+    await user.click(screen.getByRole('button', { name: '查找替换' }))
+    await user.type(screen.getByLabelText('查找正文'), '阶段一测试文字')
+    expect(screen.getByText('找到 1 处，涉及 1 章。')).toBeVisible()
+    expect(screen.getByRole('button', { name: '上一处' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '下一处' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '全部替换 (1)' })).toBeEnabled()
 
     await user.click(screen.getByRole('tab', { name: 'XHTML 源码' }))
     expect(screen.getByLabelText('XHTML 源码编辑器')).toBeVisible()

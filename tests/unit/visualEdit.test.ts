@@ -5,7 +5,9 @@ import {
   createEditSession,
   getChapterSource,
   getChapterTextSegments,
+  redoEdit,
   SourceValidationError,
+  undoEdit,
 } from '../../src/epub/editor/editSession.js'
 import { openEpubPublication } from '../../src/epub/parser/publication.js'
 import {
@@ -75,6 +77,14 @@ describe('safe visual text editing', () => {
     expect(() =>
       commitVisualText(edited, chapter.archivePath, segment.id, '过期修改'),
     ).toThrow(SourceValidationError)
+
+    const undone = undoEdit(edited)
+    expect(getChapterSource(undone, chapter.archivePath)).toBe(
+      chapter.originalSource,
+    )
+    expect(getChapterSource(redoEdit(undone), chapter.archivePath)).toBe(
+      getChapterSource(edited, chapter.archivePath),
+    )
   })
 
   it('downgrades script-driven content from safe visual mapping', () => {

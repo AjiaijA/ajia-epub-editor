@@ -2,6 +2,7 @@ import type { EpubEditSession, EpubIssue } from '../../models/publication.js'
 import { resolveArchiveHref } from '../archive/pathSafety.js'
 import {
   getChapterSource,
+  getEntrySource,
   validateChapterSource,
 } from '../editor/editSession.js'
 import { descendantsByLocalName, parseXml } from '../parser/xml.js'
@@ -104,6 +105,36 @@ export function validateExportSession(
           path,
         ),
       )
+    }
+    if (
+      !session.transactions.some((transaction) =>
+        transaction.changes.some((change) => change.path === path),
+      )
+    ) {
+      issues.push(
+        errorIssue(
+          'export.dirty-without-transaction',
+          'dirty entry 没有明确的编辑 transaction。',
+          path,
+        ),
+      )
+    }
+    if (
+      !publication.chapters.some((chapter) => chapter.archivePath === path) &&
+      session.currentSources.has(path)
+    ) {
+      try {
+        parseXml(getEntrySource(session, path), path)
+      } catch (cause) {
+        issues.push(
+          errorIssue(
+            'export.invalid-dirty-xml',
+            '修改后的 NAV/NCX 不是合法 XML。',
+            path,
+            cause instanceof Error ? cause.message : undefined,
+          ),
+        )
+      }
     }
   }
 

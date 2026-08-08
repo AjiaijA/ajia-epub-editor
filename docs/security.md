@@ -1,6 +1,6 @@
 # Security
 
-Status: Phase 3 archive intake, safe visual editing, source validation, and export controls implemented.
+Status: Phase 4 archive intake, minimal text/navigation patching, reversible transactions, and export controls implemented.
 
 ## Archive gate
 
@@ -80,6 +80,21 @@ Composition ends and focus/mode/chapter changes flush pending text through the
 same stale-ID, XML, and fingerprint checks. The application reads only
 `textContent`; iframe `innerHTML` is never authoritative or saved.
 
+## Search, replacement, and navigation controls
+
+Search consumes verified body text segments only. It does not index element
+attributes, metadata, scripts, styles, or arbitrary serialized DOM. Results
+are revision-bound; any intervening chapter change makes them stale. Replace
+All first verifies the complete result set and every candidate chapter, then
+commits one multi-entry transaction. A stale or invalid candidate leaves the
+entire session unchanged.
+
+TOC editing changes only a uniquely located NAV/NCX text node through the same
+escaped minimal-patch and XML-validation path. Targets, attributes, hierarchy,
+and unrelated source bytes are retained. Uncertain synchronization produces a
+warning rather than a guessed rewrite. Undo/Redo restores recorded exact
+entry bytes and never operates on preview HTML.
+
 ## Phase 0 controls
 
 - Processing code is local and has no network, backend, telemetry, analytics, or
@@ -98,7 +113,7 @@ same stale-ID, XML, and fingerprint checks. The application reads only
 
 ## Remaining security limits
 
-Phase 3 relies on central-directory declared sizes before `fflate` extraction.
+Phase 4 relies on central-directory declared sizes before `fflate` extraction.
 Payload sizes are checked again afterward, but extraction is not yet an
 incremental stream with a live output-byte abort. Work runs in a cancellable
 Worker so the UI remains isolated, but peak memory can approach the configured
@@ -116,6 +131,10 @@ invariance tests are maintained independently.
 
 No book content may be sent to analytics, error reporting, AI services, or
 application servers in any phase.
+
+Whole-book search currently executes on the UI thread. Archive size limits
+bound the input, but unusually text-heavy books may cause temporary UI delay;
+moving indexing to a Worker remains a Phase 5 performance hardening item.
 
 EPUBCheck is a CI/build-time tool only. The browser never uploads a user's book
 for conformance checking. CI downloads the pinned 5.3.0 distribution and first

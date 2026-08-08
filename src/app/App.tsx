@@ -3,22 +3,28 @@ import { useMemo, useRef, useState, type RefObject } from 'react'
 import { IssuePanel } from '../components/IssuePanel.js'
 import { NavigationTree } from '../components/NavigationTree.js'
 import { SafeVisualEditor } from '../components/SafeVisualEditor.js'
+import { SearchReplacePanel } from '../components/SearchReplacePanel.js'
 import { SourceEditor } from '../components/SourceEditor.js'
+import { TocLabelEditor } from '../components/TocLabelEditor.js'
 import {
   commitChapterSource,
   commitVisualText,
   createEditSession,
   getChapterSource,
   getChapterTextSegments,
+  redoEdit,
   SourceValidationError,
+  undoEdit,
 } from '../epub/editor/editSession.js'
 import { ExportValidationError } from '../epub/exporter/exportEpub.js'
 import { createSandboxedPreview } from '../epub/preview/createPreview.js'
+import { getCurrentNavigation } from '../epub/navigation/tocEditor.js'
 import { validateExportSession } from '../epub/validator/exportValidator.js'
 import {
   EpubOpenError,
   type EpubEditSession,
   type EpubIssue,
+  type NavigationItem,
 } from '../models/publication.js'
 import { openPublicationAsync } from './openPublicationAsync.js'
 import { exportEpubAsync } from './exportEpubAsync.js'
@@ -40,6 +46,8 @@ export function App() {
   const [visualError, setVisualError] = useState<string | null>(null)
   const [exportIssues, setExportIssues] = useState<readonly EpubIssue[]>([])
   const [exporting, setExporting] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [selectedTocId, setSelectedTocId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const openTaskRef = useRef<AbortController | null>(null)
   const pendingVisualRef = useRef<{
@@ -49,6 +57,18 @@ export function App() {
 
   const session = state.kind === 'ready' ? state.session : null
   const publication = session?.publication ?? null
+  const currentNavigation = useMemo(
+    () => (session === null ? null : getCurrentNavigation(session)),
+    [session],
+  )
+  const selectedTocItem = useMemo(() => {
+    if (currentNavigation === null || selectedTocId === null) return null
+    return (
+      flattenNavigation(currentNavigation.items).find(
+        (item) => item.id === selectedTocId,
+      ) ?? null
+    )
+  }, [currentNavigation, selectedTocId])
   const activeChapter =
     publication?.chapters.find(
       (chapter) => chapter.archivePath === activePath,
@@ -117,6 +137,7 @@ export function App() {
       const firstPath = nextPublication.chapters[0]?.archivePath ?? null
       setState({ kind: 'ready', session: nextSession })
       setActivePath(firstPath)
+      setSelectedTocId(nextPublication.navigation.items[0]?.id ?? null)
       setDraft(
         firstPath === null ? '' : getChapterSource(nextSession, firstPath),
       )
@@ -150,6 +171,8 @@ export function App() {
     setSourceError(null)
     setVisualError(null)
     setExportIssues([])
+    setSearchOpen(false)
+    setSelectedTocId(null)
     pendingVisualRef.current = null
   }
 
@@ -212,11 +235,12 @@ export function App() {
     }
   }
 
-  function selectChapter(path: string): void {
+  function selectChapter(path: string, item?: NavigationItem): void {
     if (session === null) return
     const nextSession = commitDraft(session)
     if (nextSession === null) return
     setActivePath(path)
+    if (item !== undefined) setSelectedTocId(item.id)
     setDraft(getChapterSource(nextSession, path))
     setSourceError(null)
   }
@@ -246,10 +270,64 @@ export function App() {
   }
 
   function showSource(): void {
-    if (activeChapter === null) return
-    setDraft(currentSource)
+    if (activeChapter === null || session === null) return
+    const nextSession = commitDraft(session)
+    if (nextSession === null) return
+    setDraft(getChapterSource(nextSession, activeChapter.archivePath))
     setSourceError(null)
     setMode('source')
+  }
+
+  function openSearch(): void {
+    if (session === null) return
+    const nextSession = commitDraft(session)
+    if (nextSession !== null) setSearchOpen(true)
+  }
+
+  function applySession(nextSession: EpubEditSession, path?: string): void {
+    const nextPath = path ?? activeChapter?.archivePath ?? null
+    setState({ kind: 'ready', session: nextSession })
+    if (nextPath !== null) {
+      setActivePath(nextPath)
+      setDraft(getChapterSource(nextSession, nextPath))
+    }
+    pendingVisualRef.current = null
+    setSourceError(null)
+    setVisualError(null)
+    setExportIssues([])
+  }
+
+  function runUndo(): void {
+    if (session === null) return
+    const committed = commitDraft(session)
+    if (committed !== null) applySession(undoEdit(committed))
+  }
+
+  function runRedo(): void {
+    if (session === null) return
+    const committed = commitDraft(session)
+    if (committed !== null) applySession(redoEdit(committed))
+  }
+
+  function restoreActiveChapter(): void {
+    if (session === null || activeChapter === null) return
+    if (
+      !window.confirm('确认将本章恢复为打开 EPUB 时的内容吗？此操作可以 Undo。')
+    ) {
+      return
+    }
+    try {
+      const nextSession = commitChapterSource(
+        session,
+        activeChapter.archivePath,
+        activeChapter.originalSource,
+      )
+      applySession(nextSession, activeChapter.archivePath)
+    } catch (cause) {
+      setSourceError(
+        cause instanceof Error ? cause.message : '无法恢复本章原始内容。',
+      )
+    }
   }
 
   function runExportCheck(): EpubEditSession | null {
@@ -327,7 +405,7 @@ export function App() {
             if (file !== undefined) void openFile(file)
           }}
         >
-          <p className="phase-label">阶段 3 · 安全文字编辑</p>
+          <p className="phase-label">阶段 4 · 查找、目录与历史</p>
           <h2>
             {state.kind === 'loading'
               ? `正在检查 ${state.fileName}`
@@ -372,6 +450,17 @@ export function App() {
   const readyPublication = readySession.publication
   const draftChanged = activeChapter !== null && draft !== currentSource
   const sourceLocked = activeChapter?.sourceEditCapability === 'encrypted'
+  const affectedChapterCount = new Set(
+    readySession.transactions.flatMap((transaction) =>
+      transaction.changes
+        .map((change) => change.path)
+        .filter((path) =>
+          readyPublication.chapters.some(
+            (chapter) => chapter.archivePath === path,
+          ),
+        ),
+    ),
+  ).size
 
   return (
     <main className="reader-shell">
@@ -387,6 +476,13 @@ export function App() {
         </div>
         <div className="header-actions">
           <span className="local-badge">仅本地处理</span>
+          <button
+            className="secondary-button"
+            onClick={openSearch}
+            type="button"
+          >
+            查找替换
+          </button>
           <button
             className="secondary-button"
             onClick={() => {
@@ -434,7 +530,7 @@ export function App() {
               <h2>目录</h2>
             </div>
             <span className="source-badge">
-              {readyPublication.navigation.source.toUpperCase()}
+              {currentNavigation?.source.toUpperCase() ?? '—'}
             </span>
           </div>
           <NavigationTree
@@ -444,9 +540,20 @@ export function App() {
                 readyPublication.chapters.map((chapter) => chapter.archivePath),
               )
             }
-            items={readyPublication.navigation.items}
+            items={currentNavigation?.items ?? []}
             onSelect={selectChapter}
           />
+          {selectedTocItem === null ||
+          selectedTocItem.sources[0]?.kind === 'spine' ? null : (
+            <TocLabelEditor
+              item={selectedTocItem}
+              onApply={(nextSession, issues) => {
+                applySession(nextSession)
+                setExportIssues(issues)
+              }}
+              session={readySession}
+            />
+          )}
         </aside>
 
         <section className="reading-pane" aria-labelledby="chapter-heading">
@@ -531,6 +638,20 @@ export function App() {
                   <div>
                     <button
                       className="secondary-button"
+                      disabled={
+                        activeChapter === null ||
+                        (!draftChanged &&
+                          !readySession.dirtyEntries.has(
+                            activeChapter.archivePath,
+                          ))
+                      }
+                      onClick={restoreActiveChapter}
+                      type="button"
+                    >
+                      恢复本章打开时内容
+                    </button>
+                    <button
+                      className="secondary-button"
                       disabled={!draftChanged}
                       onClick={() => {
                         setDraft(currentSource)
@@ -602,6 +723,19 @@ export function App() {
         </section>
 
         <aside className="issues-column">
+          {searchOpen ? (
+            <SearchReplacePanel
+              activeChapterPath={activeChapter?.archivePath ?? null}
+              onApply={applySession}
+              onClose={() => {
+                setSearchOpen(false)
+              }}
+              onNavigate={(path) => {
+                selectChapter(path)
+              }}
+              session={readySession}
+            />
+          ) : null}
           {exportIssues.length > 0 ? (
             <IssuePanel issues={exportIssues} />
           ) : null}
@@ -610,10 +744,29 @@ export function App() {
       </div>
       <footer className="reader-footer">
         <span>
-          本地处理 · 已修改 {readySession.dirtyEntries.size} 个 entry ·{' '}
-          {readySession.transactions.length} 次编辑提交
+          本地处理 · 已修改 {readySession.dirtyEntries.size} 个 entry · 涉及{' '}
+          {affectedChapterCount} 章 · {readySession.transactions.length}{' '}
+          次编辑提交
         </span>
-        <span>阶段 3 · 原文件永不覆盖</span>
+        <span className="history-actions">
+          <button
+            disabled={readySession.transactions.length === 0}
+            onClick={runUndo}
+            type="button"
+          >
+            Undo
+          </button>
+          <button
+            disabled={readySession.redoTransactions.length === 0}
+            onClick={runRedo}
+            type="button"
+          >
+            Redo
+          </button>
+          <span>
+            {readySession.transactions.at(-1)?.summary ?? '尚无修改'} · 阶段 4
+          </span>
+        </span>
       </footer>
     </main>
   )
@@ -639,4 +792,10 @@ function FileInput({
       type="file"
     />
   )
+}
+
+function flattenNavigation(
+  items: readonly NavigationItem[],
+): readonly NavigationItem[] {
+  return items.flatMap((item) => [item, ...flattenNavigation(item.children)])
 }

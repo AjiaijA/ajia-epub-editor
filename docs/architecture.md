@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Phase 3 safe visual editing complete on 2026-08-08.
+Status: Phase 4 search, transactions, and navigation editing complete on 2026-08-08.
 
 ## Phase 1 read pipeline
 
@@ -92,6 +92,33 @@ The structural fingerprint retains element/namespace hierarchy, every
 attribute value, comments, processing instructions, CDATA, and text-node
 positions/count while excluding only text values.
 
+### Phase 4 search and transaction authority
+
+`src/epub/search/textSearch.ts` indexes the same verified body text segments
+used by safe visual editing. Search therefore excludes attributes, head,
+script, and style text and deliberately does not join matches across inline
+segment boundaries. Every result carries its chapter revision and exact raw
+source slice. Replace-current rejects a stale result. Replace All validates
+every result first, groups patches by chapter, applies ranges from the end of
+each source, validates every candidate XHTML, and commits all changed entries
+as one transaction or none.
+
+The edit session now records generic reversible changes containing exact
+before/after source and bytes for each affected entry. Source edits, visual
+text edits, replacements, and TOC labels share this one boundary. Undo moves
+the last transaction to a redo stack and restores all its entries atomically;
+Redo reapplies the same verified bytes. A new edit clears the redo stack.
+
+### Minimal navigation patches
+
+`src/epub/navigation/tocEditor.ts` reparses navigation over the current edit
+overlay, locates a selected NAV anchor or NCX `navLabel/text` by normalized
+target plus current label, and changes exactly one mapped text token. When an
+EPUB 3 NAV item has one unambiguous NCX target match, both labels are committed
+in one transaction. Ambiguous or structurally complex labels are left
+untouched and reported as warnings; href targets and hierarchy are never
+rewritten. Spine fallback labels are read-only.
+
 ### Export boundary
 
 `src/epub/validator/exportValidator.ts` blocks export for archive/open errors,
@@ -108,10 +135,11 @@ downloads an `-edited.epub`; it never overwrites the selected file.
 
 ### UI boundary
 
-React components receive the publication through an edit session. The UI adds
-an explicit advanced XHTML tab, validation/apply controls, dirty state,
-pre-export checks, background export, and a warning before abandoning unsaved
-changes. It has no visual editing, backend, analytics, or network integration.
+React components receive the publication through an edit session. The UI has
+preview, safe visual, and advanced XHTML views; current-chapter/whole-book
+search; result navigation; replacement counts; TOC label editing; history
+controls and summaries; pre-export checks; and background export. It has no
+backend, analytics, AI, or book-content network integration.
 
 ## Proven seams
 
@@ -170,9 +198,9 @@ toolchain.
 
 ## Deferred architecture
 
-Phase 3 deliberately does not implement search/replace, navigation editing, or
-application Undo/Redo. Those later operations must reuse the source-token
-transaction boundary and must not serialize a preview DOM. The parser and
-exporter currently materialize complete bounded archives in Worker memory;
-streamed processing remains a performance and
-defense-in-depth improvement for later large-book work.
+Search currently runs synchronously over bounded in-memory chapter sources;
+large-book profiling may justify a dedicated index Worker in Phase 5. The
+parser and exporter also materialize complete bounded archives in Worker
+memory. Streamed processing remains a performance and defense-in-depth
+improvement. Phase 5 may split the main UI bundle, but must not introduce a
+second save authority or DOM serialization path.
