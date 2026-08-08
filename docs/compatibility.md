@@ -1,19 +1,20 @@
 # Compatibility
 
-Status: V0.1 RC1 automated and Chromium evidence recorded on 2026-08-08; native reader release gates remain pending.
+Status: V0.1 RC1 automated, Chromium evidence recorded, and Calibre 9.11
+accepted on 2026-08-08; Apple Books and Thorium release gates remain pending.
 
 ## V0.1 RC1 application matrix
 
-| Surface                  | Evidence                                                 | Result               |
-| ------------------------ | -------------------------------------------------------- | -------------------- |
-| Chrome 151 desktop       | Full Playwright open/edit/search/Undo/export/reopen flow | Pass                 |
-| Chromium 390 px viewport | Export remains visible; no horizontal document overflow  | Pass                 |
-| Runtime network boundary | Every observed request remains on the local test origin  | Pass                 |
-| Search responsiveness    | Dedicated cancellable Worker with fallback unit tests    | Pass                 |
-| Release package          | Versioned static ZIP plus SHA-256 sidecar                | Pass                 |
-| Apple Books              | Requires macOS hardware/manual import                    | Pending release gate |
-| Calibre 9.11 Viewer      | Edited EPUB loads; metadata and body parse verified      | Partial pass         |
-| Thorium Reader           | Not installed on the current Windows test host           | Pending release gate |
+| Surface                  | Evidence                                                  | Result               |
+| ------------------------ | --------------------------------------------------------- | -------------------- |
+| Chrome 151 desktop       | Full Playwright open/edit/search/Undo/export/reopen flow  | Pass                 |
+| Chromium 390 px viewport | Export remains visible; no horizontal document overflow   | Pass                 |
+| Runtime network boundary | Every observed request remains on the local test origin   | Pass                 |
+| Search responsiveness    | Dedicated cancellable Worker with fallback unit tests     | Pass                 |
+| Release package          | Versioned static ZIP plus SHA-256 sidecar                 | Pass                 |
+| Apple Books              | Requires macOS hardware/manual import                     | Pending release gate |
+| Calibre 9.11 Viewer      | Viewer load plus user-confirmed NCX label and edited body | Pass                 |
+| Thorium Reader           | Not installed on the current Windows test host            | Pending release gate |
 
 ## Phase 4 search, history, and TOC matrix
 
@@ -136,11 +137,11 @@ The installed `C:\Program Files\Calibre2\ebook-viewer.exe` opened
 Chinese title and language, and `ebook-convert` parsed the EPUB input and
 extracted “这是自建的 EPUB 2 RC 阅读器测试文字。” without error.
 
-The Windows UI control bridge failed while requesting a screenshot, so the NCX
-label and close/reopen behavior have not been independently observed by the
-agent. The viewer remains open for a human visual check of “RC 阅读器测试目录”
-and the edited sentence. Calibre is therefore recorded as a partial pass, not a
-completed release gate.
+The Windows UI control bridge failed while requesting a screenshot, but the
+user completed the human visual check and confirmed both “RC 阅读器测试目录” and
+the edited sentence on 2026-08-08. Together with the successful viewer load and
+Calibre parser evidence, the Calibre reader gate is recorded as a pass. A
+separate automated close/reopen capture was not produced.
 
 ## Not yet claimed
 
@@ -150,8 +151,8 @@ but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
-Apple Books, Calibre and a browser-engine reader smoke test remain release
-requirements. V0.1 RC1 also does not certify fixed-layout fidelity, SVG/MathML
+Apple Books and Thorium Reader smoke tests remain release requirements. V0.1
+RC1 also does not certify fixed-layout fidelity, SVG/MathML
 visual editing, large-book search responsiveness, or ambiguous/structurally
 complex navigation label rewrites. Those cases intentionally remain read-only
 or warning paths.

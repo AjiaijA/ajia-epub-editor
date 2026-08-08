@@ -84,6 +84,6 @@ npm audit
 - `epub2-reader-smoke.epub`：自建、可再分发的阅读器冒烟样本。
 - `epub2-reader-smoke-edited.epub`：带固定目录与正文修订的结果样本。
 
-在仓库中运行 `npm run preview` 可预览刚构建的 `dist/`。部署和回滚步骤见 [DEPLOY.md](DEPLOY.md)，兼容性实测状态见 [docs/compatibility.md](docs/compatibility.md)。Apple Books、Calibre 和 Thorium 的人工阅读器确认仍是从 RC 升为正式 V0.1 的发布门禁。
+在仓库中运行 `npm run preview` 可预览刚构建的 `dist/`。部署和回滚步骤见 [DEPLOY.md](DEPLOY.md)，兼容性实测状态见 [docs/compatibility.md](docs/compatibility.md)。Calibre 9.11 已通过实测；Apple Books 和 Thorium 的人工阅读器确认仍是从 RC 升为正式 V0.1 的发布门禁。
 
 未经确认，不部署到 `ajia.site`、不创建公开 release，也不加入后端、遥测、账户或 AI 功能。

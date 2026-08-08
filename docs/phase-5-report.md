@@ -46,16 +46,17 @@ added.
 Chromium application testing is green. Apple Books cannot run on this Windows
 host. Calibre 9.11 is installed: its viewer opened the edited fixture, metadata
 parsing passed, and its conversion engine extracted the edited Chinese body
-text. The UI control bridge could not capture the viewer, so visual NCX label
-and close/reopen confirmation remain pending. Thorium is not installed. The
-remaining manual navigation, edited-text, and reopen checks are promotion gates;
-the self-authored `epub2-reader-smoke.epub` and a fixed
+text. The user visually confirmed the expected NCX label and edited sentence on
+2026-08-08, so the Calibre gate is recorded as passed; no separate automated
+close/reopen capture was produced. Thorium is not installed. The remaining
+Apple Books and Thorium manual navigation, edited-text, and reopen checks are
+promotion gates; the self-authored `epub2-reader-smoke.epub` and a fixed
 `epub2-reader-smoke-edited.epub` are provided for those tests. This RC is
 testable but is not represented as the final public V0.1 release.
 
 ## Residual risks
 
-- Native Apple Books, Calibre, and Thorium results are pending.
+- Native Apple Books and Thorium results are pending.
 - Large archives remain bounded but fully materialized in Worker memory rather
   than streamed.
 - The main JavaScript bundle triggers Vite's 500 kB advisory; it is functional,
@@ -65,6 +66,6 @@ testable but is not represented as the final public V0.1 release.
 
 ## Recommendation
 
-Distribute RC1 privately for the three reader smoke tests. Promote to V0.1 only
+Continue private RC1 testing in Apple Books and Thorium. Promote to V0.1 only
 after those results are recorded and the user explicitly approves deployment
 or release publication.
