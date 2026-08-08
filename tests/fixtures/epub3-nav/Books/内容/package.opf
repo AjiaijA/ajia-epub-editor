@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="uid">urn:uuid:10000000-0000-0000-0000-000000000003</dc:identifier>
+    <dc:title>阶段一 EPUB 3 测试书</dc:title>
+    <dc:language>zh-CN</dc:language>
+    <meta property="dcterms:modified">2026-08-08T00:00:00Z</meta>
+  </metadata>
+  <manifest>
+    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+    <item id="chapter-1" href="Text/%E7%AC%AC%E4%B8%80%E7%AB%A0.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter-2" href="Text/第二章.xhtml" media-type="application/xhtml+xml"/>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+    <item id="style" href="Styles/book.css" media-type="text/css"/>
+    <item id="image" href="Images/mark.svg" media-type="image/svg+xml"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="chapter-1"/>
+    <itemref idref="chapter-2" linear="no"/>
+  </spine>
+</package>

@@ -6,15 +6,17 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 
 ## Current milestone
 
-Work only on Phase 0 unless the user explicitly authorizes the next phase:
+Phase 0 is complete. The user authorized Phase 1 on 2026-08-08. Work only on
+Phase 1 until the user explicitly authorizes the next phase:
 
-1. Create the minimal TypeScript project and test harness.
-2. Build a ZIP round-trip spike proving EPUB `mimetype` ordering and STORE behavior at the binary local-header level, while clean entry payload bytes remain unchanged after extraction.
-3. Build a safe text-patch spike proving that editing one XHTML text token preserves the XML structure and all non-target source text.
-4. Convert both spikes into permanent regression tests.
-5. Run the tests and write a short phase report with evidence, limitations, and remaining risks.
+1. Add bounded archive preflight and reject unsafe ZIP input before extraction.
+2. Parse container.xml, OPF manifest/spine, EPUB 3 NAV, and EPUB 2 NCX.
+3. Build the unified read-only publication and navigation models with spine fallback.
+4. Add local file selection/drop, an accessible navigation tree, sandboxed read-only preview, and issue panel.
+5. Extend self-authored fixtures and tests for basic EPUB 2/3 browsing and malicious-input rejection.
+6. Run all checks and write a Phase 1 report with evidence, limitations, and remaining risks.
 
-Do not build the complete UI during Phase 0.
+Do not add editing, export UI, deployment, backend, telemetry, or AI during Phase 1.
 
 ## Non-negotiable constraints
 

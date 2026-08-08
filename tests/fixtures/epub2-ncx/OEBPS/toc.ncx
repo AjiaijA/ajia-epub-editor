@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="phase-1-epub-2"/></head><docTitle><text>阶段一 EPUB 2 测试书</text></docTitle><navMap><navPoint id="chapter" playOrder="1"><navLabel><text>唯一章节</text></navLabel><content src="text/chapter.xhtml"/></navPoint></navMap></ncx>

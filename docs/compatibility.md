@@ -1,6 +1,30 @@
 # Compatibility
 
-Status: Phase 0 technical spike evidence recorded on 2026-08-08.
+Status: Phase 1 automated compatibility evidence recorded on 2026-08-08.
+
+## Phase 1 fixture matrix
+
+All fixtures are self-authored, source-visible, and redistributable.
+
+| Fixture / behavior        | Evidence                                                       | Result |
+| ------------------------- | -------------------------------------------------------------- | ------ |
+| EPUB 3 + nested NAV       | Unicode OPF path, encoded Unicode chapter href, nested toc     | Pass   |
+| EPUB 3 NAV + NCX          | NAV selected as authority, matching NCX retained as alternate  | Pass   |
+| EPUB 2 + NCX              | OPF 2.0 spine `toc` resolves NCX navigation                    | Pass   |
+| No standard navigation    | Chapter title and spine order fallback with warning            | Pass   |
+| Non-linear spine item     | Retained and marked `linear: false`                            | Pass   |
+| Local CSS and SVG         | Embedded into isolated preview without network access          | Pass   |
+| Active/remote XHTML       | Script, iframe, refresh, events and live URLs removed          | Pass   |
+| Missing manifest resource | Issue recorded; other readable chapter remains available       | Pass   |
+| `encryption.xml` chapter  | Protected chapter downgraded and not visually previewed        | Pass   |
+| Unsafe ZIP paths          | Parent, absolute, drive and backslash paths rejected           | Pass   |
+| Normalized duplicates     | Colliding paths rejected before extraction                     | Pass   |
+| Suspicious ratio/limits   | Metadata limits enforced before extraction                     | Pass   |
+| Header disagreement       | Central/local name mismatch and aliased local offsets rejected | Pass   |
+| UI read flow              | File open, directory tree, sandbox iframe and chapter switch   | Pass   |
+
+The Phase 0 ZIP and safe-text-patch preservation tests remain active alongside
+this matrix.
 
 ## Automated evidence
 
@@ -24,17 +48,15 @@ The same core modules are TypeScript-checked and built as ES modules.
 
 ## Not yet claimed
 
-Phase 0 does not claim compatibility with EPUB 2, NAV/NCX, nested navigation,
-BOM-bearing package documents, unusual or percent-encoded paths, fixed layout,
-SVG/MathML/ruby, encrypted content, malformed archives, ZIP attack fixtures,
-large books, browser memory limits, or any reading application.
+Phase 1 does not yet claim full coverage for BOM package fixtures, ZIP64,
+legacy CP437 filename encoding, all EPUB namespace variants, deeply malformed
+but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
+ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
+Fixed layout is detected and warned but not visually certified.
 
-EPUBCheck has not been run in Phase 0: the spike writes an archive from a minimal
-preservation fixture but does not yet implement the complete exported-fixture
-pipeline or EPUB validation stage. EPUBCheck integration and fully compliant
-fixtures remain required before the later export milestone. Apple Books,
-Calibre, and a browser-engine reader smoke test also remain required before
-V0.1.
+EPUBCheck is still outside Phase 1 because no export pipeline exists yet.
+EPUBCheck integration begins with the reliable export milestone. Apple Books,
+Calibre and a browser-engine reader smoke test also remain release requirements.
 
 The broader fixture matrix in `product-requirements.md` remains the acceptance
 target and must not be inferred from this single passing fixture.

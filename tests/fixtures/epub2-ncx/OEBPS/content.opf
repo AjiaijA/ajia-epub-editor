@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">phase-1-epub-2</dc:identifier><dc:title>阶段一 EPUB 2 测试书</dc:title><dc:language>zh-CN</dc:language></metadata>
+  <manifest><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="chapter" href="text/chapter.xhtml" media-type="application/xhtml+xml"/></manifest>
+  <spine toc="ncx"><itemref idref="chapter"/></spine>
+</package>

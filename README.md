@@ -6,12 +6,18 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 
 ## 当前状态
 
-项目处于 V0.1 的阶段 0：技术探针。
+阶段 0 技术探针已经通过。项目现已完成 V0.1 阶段 1：解析与只读浏览。
 
-在开始完整 UI 开发前，必须先证明：
+当前可以：
 
-1. 导出的 EPUB 能保证根目录 `mimetype` 是 ZIP 中第一个 local file entry、内容严格正确并使用 STORE；
-2. 安全文字编辑能够只修改目标 XHTML 文本 token，同时保持结构和所有非目标源码不变。
+1. 从本地选择或拖入无 DRM 的 EPUB；
+2. 在解压前检查 ZIP central directory、路径、容量、压缩比与 header 一致性；
+3. 读取 `container.xml`、OPF、manifest、spine、EPUB 3 NAV 与 EPUB 2 NCX；
+4. 以统一目录树浏览章节，并在无标准目录时使用 spine fallback；
+5. 在无脚本权限、带严格 CSP 的 iframe 中显示净化后的只读章节；
+6. 查看安全、结构与兼容性问题面板。
+
+打开与解析在浏览器 Worker 中运行，可取消。当前不提供编辑或导出；这些功能必须按后续阶段逐步实现。
 
 完整需求见 [docs/product-requirements.md](docs/product-requirements.md)。
 
@@ -25,7 +31,7 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 - 不上传书籍内容
 - 不处理或绕过 DRM
 
-## 阶段 0 验证结果
+## 阶段 0 保留的回归边界
 
 两个技术探针已经实现为永久回归测试：
 
@@ -34,7 +40,18 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 - XML-aware 文本补丁只替换选定的 XHTML 文本 token，结构指纹与目标以外的源码保持不变；
 - 特殊字符 `& < >` 会按 XML 文本规则转义，inline 标签保持原样。
 
-本阶段仍不是完整 EPUB 打开或导出实现。ZIP 安全预检、完整 fixture 矩阵、EPUBCheck、浏览器集成和 UI 属于后续阶段，需经阶段报告审阅后才能开始。
+阶段 0 的 ZIP 与最小文本补丁断言继续作为永久回归测试运行。
+
+## 阶段 1 安全限额
+
+- 原始文件：100 MiB；
+- entry 数量：10,000；
+- 声明总解压大小：512 MiB；
+- 单 entry 声明解压大小：128 MiB；
+- 最大压缩比：200:1；
+- 拒绝路径穿越、绝对/盘符/反斜杠路径、NUL、规范化后重复路径、ZIP 加密 entry、分卷 ZIP、ZIP64 和不支持的压缩方式。
+
+当前 ZIP64 与传统非 UTF-8 ZIP 文件名会拒绝打开。完整兼容性边界见 [docs/compatibility.md](docs/compatibility.md)。
 
 ## 本地检查
 
@@ -44,6 +61,7 @@ npm run spike:zip
 npm run spike:text
 npm run check
 npm run test:coverage
+npm audit
 ```
 
 未经确认，不部署到 `ajia.site`，不加入后端、遥测、账户或 AI 功能。

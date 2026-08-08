@@ -3,10 +3,10 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     coverage: {
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.{ts,tsx}'],
       provider: 'v8',
       reporter: ['text', 'json-summary'],
     },
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
   },
 })
