@@ -1,6 +1,6 @@
 # Compatibility
 
-Status: Phase 4 automated and Chromium interaction evidence recorded on 2026-08-08; private CI evidence pending final milestone verification.
+Status: Phase 4 automated, Chromium interaction, and private CI evidence recorded on 2026-08-08.
 
 ## Phase 4 search, history, and TOC matrix
 
@@ -106,6 +106,10 @@ also passed locally.
 
 Phase 3 private CI run `31252858027` repeated the complete gate with the visual
 editing implementation and passed EPUBCheck 5.3.0.
+
+Phase 4 private CI run `31253993587` passed all checks, including the search,
+history, synchronized navigation export regressions, zero-vulnerability audit,
+and pinned EPUBCheck 5.3.0 gate.
 
 ## Not yet claimed
 

@@ -38,8 +38,8 @@ affected chapters, and the latest transaction summary.
   containing `&`, verified Undo/Redo, found and atomically replaced body text
   with `& < >`, rendered the literal result, and completed browser export with
   a new `-edited.epub` status. There was no public deployment or PR.
-- Private CI/EPUBCheck evidence is recorded after the committed branch is
-  pushed for internal verification.
+- Private CI run `31253993587` passed the complete committed branch in 1m2s,
+  including the pinned EPUBCheck 5.3.0 gate and zero-vulnerability audit.
 
 ## Library choices
 
@@ -64,5 +64,5 @@ surface only.
 
 ## Recommendation
 
-Proceed to Phase 5 only after the private CI/EPUBCheck gate is green. Phase 5
-is the final planned phase for the V0.1 release candidate.
+Proceed to Phase 5. The private CI/EPUBCheck gate is green. Phase 5 is the final
+planned phase for the V0.1 release candidate.
