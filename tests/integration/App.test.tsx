@@ -8,8 +8,8 @@ import { describe, expect, it } from 'vitest'
 import { App } from '../../src/app/App.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
-describe('Phase 1 read-only app', () => {
-  it('opens a local EPUB and exposes navigation, sandbox preview, and issues', async () => {
+describe('Phase 2 source editor app', () => {
+  it('opens a local EPUB and exposes navigation, source mode, preview, and export', async () => {
     const bytes = await buildFixtureArchive('epub3-nav')
     const fileBuffer = bytes.slice().buffer
     const file = new File([fileBuffer], '阶段一.epub', {
@@ -39,7 +39,12 @@ describe('Phase 1 read-only app', () => {
       'sandbox',
       '',
     )
-    expect(screen.getByText(/只读模式/u)).toBeVisible()
+    expect(screen.getByText(/阶段 2 · 原文件永不覆盖/u)).toBeVisible()
+    expect(screen.getByRole('button', { name: '导出 EPUB' })).toBeEnabled()
+
+    await user.click(screen.getByRole('tab', { name: 'XHTML 源码' }))
+    expect(screen.getByLabelText('XHTML 源码编辑器')).toBeVisible()
+    await user.click(screen.getByRole('tab', { name: '预览' }))
 
     await user.click(screen.getByRole('button', { name: /第二章/u }))
     await waitFor(() =>

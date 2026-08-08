@@ -48,4 +48,11 @@ describe('archive path safety', () => {
       resolveArchiveHref('EPUB/chapter.xhtml', 'a%2Fb.xhtml'),
     ).toThrow('separator')
   })
+
+  it('resolves a fragment-only href to the current document', () => {
+    expect(resolveArchiveHref('EPUB/chapter.xhtml', '#note')).toMatchObject({
+      path: 'EPUB/chapter.xhtml',
+      normalizedTarget: 'EPUB/chapter.xhtml#note',
+    })
+  })
 })

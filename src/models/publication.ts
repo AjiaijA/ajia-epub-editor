@@ -38,9 +38,27 @@ export interface ChapterDocument {
   readonly linear: boolean
   readonly originalBytes: Uint8Array
   readonly originalSource: string
+  readonly sourceEditCapability: 'editable' | 'encrypted'
   readonly sourceEncoding: 'utf-8' | 'utf-8-bom'
   readonly title: string
   readonly visualEditCapability: 'readonly' | 'source-only'
+}
+
+export interface SourceEditTransaction {
+  readonly afterSource: string
+  readonly beforeSource: string
+  readonly chapterPath: string
+  readonly revision: number
+  readonly type: 'source-edit'
+}
+
+export interface EpubEditSession {
+  readonly currentSources: ReadonlyMap<string, string>
+  readonly dirtyEntries: ReadonlySet<string>
+  readonly modifiedEntries: ReadonlyMap<string, Uint8Array>
+  readonly publication: EpubPublication
+  readonly revision: number
+  readonly transactions: readonly SourceEditTransaction[]
 }
 
 export interface NavigationSourceRef {

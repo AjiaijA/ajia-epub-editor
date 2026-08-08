@@ -13,6 +13,7 @@
   },
   "include": [
     "src",
+    "scripts",
     "tests",
     "eslint.config.js",
     "vite.config.ts",

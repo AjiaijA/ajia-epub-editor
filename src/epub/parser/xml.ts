@@ -21,6 +21,18 @@ export function decodeUtf8Xml(bytes: Uint8Array): {
   }
 }
 
+export function encodeUtf8Xml(
+  source: string,
+  encoding: 'utf-8' | 'utf-8-bom',
+): Uint8Array {
+  const payload = new TextEncoder().encode(source)
+  if (encoding === 'utf-8') return payload
+  const encoded = new Uint8Array(payload.byteLength + 3)
+  encoded.set([0xef, 0xbb, 0xbf])
+  encoded.set(payload, 3)
+  return encoded
+}
+
 export function parseXml(source: string, context: string): Document {
   if (/<!DOCTYPE/i.test(source)) {
     throw new Error(`${context} 包含不允许的 DOCTYPE。`)

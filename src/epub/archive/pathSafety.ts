@@ -45,7 +45,7 @@ export function resolveArchiveHref(
 
   const baseParts = baseDocumentPath.split('/').slice(0, -1)
   const hrefParts = pathPart === '' ? [] : pathPart.split('/')
-  const output = [...baseParts]
+  const output = pathPart === '' ? baseDocumentPath.split('/') : [...baseParts]
   for (const encodedPart of hrefParts) {
     if (encodedPart === '' || encodedPart === '.') continue
     if (encodedPart === '..') {

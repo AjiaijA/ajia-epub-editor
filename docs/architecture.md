@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Phase 1 parsing and read-only browser complete on 2026-08-08.
+Status: Phase 2 source editing and preserve-first export complete on 2026-08-08.
 
 ## Phase 1 read pipeline
 
@@ -30,8 +30,8 @@ entry against its local header, including filename, method, encryption flag,
 range, overlap, and aliased offsets. The extracted payload length must then
 match the declared uncompressed size.
 
-The Phase 0 writer remains separate from this intake path. Phase 1 does not
-export or modify archives.
+The Phase 0 writer is now used only at the final export boundary, after the
+edit session and export validator have approved a complete candidate.
 
 ### Publication parsing
 
@@ -59,12 +59,39 @@ The result is serialized only to iframe `srcdoc`. The iframe has an empty
 CSP. This transformed DOM is never authoritative and cannot be saved back to an
 EPUB.
 
+### Source-edit authority
+
+`src/epub/editor/editSession.ts` owns immutable source-edit sessions. The
+original publication/archive bytes never change. A successful source commit
+must parse as XML with an XHTML `html` root, then records the exact source,
+encoded bytes, dirty path, revision, and before/after transaction. Invalid XML
+does not create a transaction or partially update the session. UTF-8 BOM state
+is retained when new bytes are encoded.
+
+CodeMirror is an input surface only. Preview construction always receives the
+last validated session source, and the sanitized preview DOM is still never a
+save source. Encrypted chapters are excluded from source editing.
+
+### Export boundary
+
+`src/epub/validator/exportValidator.ts` blocks export for archive/open errors,
+invalid dirty XHTML, missing package/manifest resources, unknown dirty paths,
+encrypted edits, or unsafe local references. Broken optional local references
+remain warnings so imperfect but openable books can still be repaired.
+
+`src/epub/exporter/exportEpub.ts` overlays only `modifiedEntries` on the
+original entry payload map and writes a new archive. It then checks the binary
+`mimetype` header, extracts the result, byte-compares every output payload with
+its expected clean or modified bytes, and reopens the exported EPUB through the
+same untrusted-input parser. Browser export runs in a dedicated Worker and
+downloads an `-edited.epub`; it never overwrites the selected file.
+
 ### UI boundary
 
-React components receive only the unified publication model. The UI provides
-local selection/drop, open progress and cancellation, an accessible recursive
-tree, chapter selection, the isolated preview, and structured issues. It has no
-editing, export, backend, analytics, or network integration.
+React components receive the publication through an edit session. The UI adds
+an explicit advanced XHTML tab, validation/apply controls, dirty state,
+pre-export checks, background export, and a warning before abandoning unsaved
+changes. It has no visual editing, backend, analytics, or network integration.
 
 ## Proven seams
 
@@ -123,8 +150,9 @@ toolchain.
 
 ## Deferred architecture
 
-Phase 1 deliberately does not implement source editing, dirty-entry tracking,
-transactions, export, EPUBCheck automation, search, history, or visual text
-editing. The parser currently materializes the complete bounded archive in
-Worker memory; incremental/streamed extraction remains a performance and
+Phase 2 deliberately does not implement visual text editing, search/replace,
+navigation editing, or application Undo/Redo. Those require the later
+source-token transaction design and must not be implemented by serializing a
+preview DOM. The parser and exporter currently materialize complete bounded
+archives in Worker memory; streamed processing remains a performance and
 defense-in-depth improvement for later large-book work.

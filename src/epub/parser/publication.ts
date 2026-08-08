@@ -83,11 +83,13 @@ export function openEpubPublication(
 
     let title = fileNameFromPath(item.archivePath)
     let capability: 'readonly' | 'source-only' = 'readonly'
+    let sourceEditCapability: 'editable' | 'encrypted' = 'editable'
     if (encryptedPaths.has(item.archivePath)) {
       capability = 'source-only'
+      sourceEditCapability = 'encrypted'
       issues.push({
         code: 'chapter.encrypted',
-        message: `章节“${item.href}”标记为加密，阶段 1 不预览其内容。`,
+        message: `章节“${item.href}”标记为加密，不能预览或修改其内容。`,
         path: item.archivePath,
         severity: 'error',
       })
@@ -115,6 +117,7 @@ export function openEpubPublication(
       linear: spineItem.linear,
       originalBytes: entry.originalData,
       originalSource: source,
+      sourceEditCapability,
       sourceEncoding,
       title,
       visualEditCapability: capability,

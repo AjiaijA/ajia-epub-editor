@@ -6,17 +6,18 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 
 ## Current milestone
 
-Phase 0 is complete. The user authorized Phase 1 on 2026-08-08. Work only on
-Phase 1 until the user explicitly authorizes the next phase:
+Phases 0 and 1 are complete. The user authorized Phase 2 on 2026-08-08. Work
+only on Phase 2 until the user explicitly authorizes the next phase:
 
-1. Add bounded archive preflight and reject unsafe ZIP input before extraction.
-2. Parse container.xml, OPF manifest/spine, EPUB 3 NAV, and EPUB 2 NCX.
-3. Build the unified read-only publication and navigation models with spine fallback.
-4. Add local file selection/drop, an accessible navigation tree, sandboxed read-only preview, and issue panel.
-5. Extend self-authored fixtures and tests for basic EPUB 2/3 browsing and malicious-input rejection.
-6. Run all checks and write a Phase 1 report with evidence, limitations, and remaining risks.
+1. Add CodeMirror 6 XHTML source editing with explicit XML validation.
+2. Track source-edit transactions as modified bytes and dirty archive entries without mutating original bytes.
+3. Add lightweight pre-export validation and block structural/archive errors.
+4. Export a new preserve-first EPUB, then verify mimetype headers, clean payload bytes, and reopenability.
+5. Add fixture export and EPUBCheck 5.3.0 CI validation.
+6. Add no-op and source-edit export integration tests and write a Phase 2 report.
 
-Do not add editing, export UI, deployment, backend, telemetry, or AI during Phase 1.
+Do not add safe visual text editing, search/replace, navigation editing,
+application Undo/Redo, deployment, backend, telemetry, or AI during Phase 2.
 
 ## Non-negotiable constraints
 
@@ -47,10 +48,6 @@ Do not delete tests, relax preservation assertions, or downgrade structural fail
 
 ## Completion report
 
-At the end of Phase 0, report:
-
-- files and architecture added;
-- commands run and results;
-- proof of ZIP local-header ordering and STORE method;
-- proof of safe text-patch preservation;
-- unresolved risks and recommended next action.
+At the end of the current phase, report files and architecture added, commands
+and evidence, preservation and validation proofs, unresolved risks, and the
+recommended next action.

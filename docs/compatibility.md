@@ -1,6 +1,22 @@
 # Compatibility
 
-Status: Phase 1 automated compatibility evidence recorded on 2026-08-08.
+Status: Phase 2 automated source/export evidence recorded on 2026-08-08.
+
+## Phase 2 source and export matrix
+
+| Behavior                   | Evidence                                                       | Result |
+| -------------------------- | -------------------------------------------------------------- | ------ |
+| Valid XHTML source edit    | Immutable commit creates one dirty entry and transaction       | Pass   |
+| Invalid XHTML source edit  | Atomic rejection; authoritative source remains unchanged       | Pass   |
+| Restore original source    | Dirty and modified-byte state return to empty                  | Pass   |
+| UTF-8 BOM source           | Edited byte payload retains the three-byte BOM                 | Pass   |
+| No-op export               | Every extracted non-mimetype payload equals its input bytes    | Pass   |
+| One-entry source export    | Only the selected XHTML differs; all clean payloads match      | Pass   |
+| Export archive contract    | First `mimetype` local entry is exact and STORE-compressed     | Pass   |
+| Export reopenability       | Result reopens through the full archive/publication parser     | Pass   |
+| Fragment-only XHTML link   | Resolves to the current chapter rather than an empty path      | Pass   |
+| Browser source surface     | CodeMirror XML mode, preview/source tabs, check/export UI      | Pass   |
+| Background export fallback | Worker path in browser; deterministic in-process test fallback | Pass   |
 
 ## Phase 1 fixture matrix
 
@@ -46,6 +62,16 @@ to test preservation seams, not to represent the full conformance matrix.
 These assertions run under Node.js 24.16.0 with the locked dependency versions.
 The same core modules are TypeScript-checked and built as ES modules.
 
+## EPUBCheck gate
+
+`npm run fixture:export` generates a self-authored EPUB 2 result from the real
+exporter. CI pins EPUBCheck 5.3.0, verifies the downloaded ZIP SHA-256, and runs
+the official JAR against that artifact. This machine did not have Java and its
+shell could not download the GitHub release asset, so the official JAR run is
+not claimed as local evidence; it remains a required CI gate on any future
+push. Internal export, reopen, header, and byte-preservation checks passed
+locally.
+
 ## Not yet claimed
 
 Phase 1 does not yet claim full coverage for BOM package fixtures, ZIP64,
@@ -54,9 +80,9 @@ but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
-EPUBCheck is still outside Phase 1 because no export pipeline exists yet.
-EPUBCheck integration begins with the reliable export milestone. Apple Books,
-Calibre and a browser-engine reader smoke test also remain release requirements.
+Apple Books, Calibre and a browser-engine reader smoke test remain release
+requirements. Phase 2 also does not certify fixed-layout fidelity, visual
+editing, navigation rewrites, search/replace, or application history.
 
 The broader fixture matrix in `product-requirements.md` remains the acceptance
 target and must not be inferred from this single passing fixture.

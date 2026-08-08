@@ -1,6 +1,6 @@
 # Security
 
-Status: Phase 1 archive intake and read-only preview controls implemented.
+Status: Phase 2 archive intake, source validation, and export controls implemented.
 
 ## Archive gate
 
@@ -48,6 +48,21 @@ base-uri 'none'; form-action 'none'
 The Worker and UI contain no telemetry, backend, account, cloud storage, AI or
 book-content logging path.
 
+## Source editing and export
+
+Source edits are accepted only for unencrypted spine XHTML. Every commit must
+parse as XML, reject `DOCTYPE`, and retain an XHTML `html` root. Validation is
+atomic: malformed drafts stay in the editor and never enter authoritative
+session bytes. UTF-8 BOM state is preserved, and the original archive entry is
+never mutated.
+
+Pre-export validation blocks known structural/open errors, missing declared
+resources, unsafe archive-local references, invalid dirty XHTML, protected
+content edits, and paths not present in the opened archive. Export occurs in a
+Worker, creates a new file, checks the required EPUB `mimetype` local header,
+byte-compares extracted payloads, and reopens the result through the archive
+gate before presenting a download.
+
 ## Phase 0 controls
 
 - Processing code is local and has no network, backend, telemetry, analytics, or
@@ -66,7 +81,7 @@ book-content logging path.
 
 ## Remaining security limits
 
-Phase 1 relies on central-directory declared sizes before `fflate` extraction.
+Phase 2 relies on central-directory declared sizes before `fflate` extraction.
 Payload sizes are checked again afterward, but extraction is not yet an
 incremental stream with a live output-byte abort. Work runs in a cancellable
 Worker so the UI remains isolated, but peak memory can approach the configured
@@ -84,3 +99,7 @@ invariance tests are maintained independently.
 
 No book content may be sent to analytics, error reporting, AI services, or
 application servers in any phase.
+
+EPUBCheck is a CI/build-time tool only. The browser never uploads a user's book
+for conformance checking. CI downloads the pinned 5.3.0 distribution and first
+verifies its published release asset against the recorded SHA-256 digest.
