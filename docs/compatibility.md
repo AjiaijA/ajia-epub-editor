@@ -1,6 +1,19 @@
 # Compatibility
 
-Status: Phase 4 automated, Chromium interaction, and private CI evidence recorded on 2026-08-08.
+Status: V0.1 RC1 automated and Chromium evidence recorded on 2026-08-08; native reader release gates remain pending.
+
+## V0.1 RC1 application matrix
+
+| Surface                  | Evidence                                                 | Result               |
+| ------------------------ | -------------------------------------------------------- | -------------------- |
+| Chrome 151 desktop       | Full Playwright open/edit/search/Undo/export/reopen flow | Pass                 |
+| Chromium 390 px viewport | Export remains visible; no horizontal document overflow  | Pass                 |
+| Runtime network boundary | Every observed request remains on the local test origin  | Pass                 |
+| Search responsiveness    | Dedicated cancellable Worker with fallback unit tests    | Pass                 |
+| Release package          | Versioned static ZIP plus SHA-256 sidecar                | Pass                 |
+| Apple Books              | Requires macOS hardware/manual import                    | Pending release gate |
+| Calibre Ebook Viewer     | Not installed on the current Windows test host           | Pending release gate |
+| Thorium Reader           | Not installed on the current Windows test host           | Pending release gate |
 
 ## Phase 4 search, history, and TOC matrix
 
@@ -113,14 +126,14 @@ and pinned EPUBCheck 5.3.0 gate.
 
 ## Not yet claimed
 
-Phase 4 does not yet claim full coverage for BOM package fixtures, ZIP64,
+V0.1 RC1 does not yet claim full coverage for BOM package fixtures, ZIP64,
 legacy CP437 filename encoding, all EPUB namespace variants, deeply malformed
 but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
 Apple Books, Calibre and a browser-engine reader smoke test remain release
-requirements. Phase 4 also does not certify fixed-layout fidelity, SVG/MathML
+requirements. V0.1 RC1 also does not certify fixed-layout fidelity, SVG/MathML
 visual editing, large-book search responsiveness, or ambiguous/structurally
 complex navigation label rewrites. Those cases intentionally remain read-only
 or warning paths.

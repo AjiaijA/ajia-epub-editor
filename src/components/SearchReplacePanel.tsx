@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
+import { searchBodyTextAsync } from '../app/searchBodyTextAsync.js'
 import {
   replaceAllSearchResults,
   replaceSearchResult,
-  searchBodyText,
+  type SearchResult,
   type SearchScope,
 } from '../epub/search/textSearch.js'
 import type { EpubEditSession } from '../models/publication.js'
@@ -28,10 +29,61 @@ export function SearchReplacePanel({
   const [scope, setScope] = useState<SearchScope>('book')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const results = useMemo(
-    () => searchBodyText(session, query, scope, activeChapterPath ?? undefined),
-    [activeChapterPath, query, scope, session],
-  )
+  const [results, setResults] = useState<readonly SearchResult[]>([])
+  const [indexing, setIndexing] = useState(false)
+  const [indexCancelled, setIndexCancelled] = useState(false)
+  const searchControllerRef = useRef<AbortController | null>(null)
+  const queryInputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    queryInputRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [onClose])
+  useEffect(() => {
+    searchControllerRef.current?.abort()
+    setSelectedIndex(0)
+    setError(null)
+    setIndexCancelled(false)
+    if (query === '') {
+      setResults([])
+      setIndexing(false)
+      return
+    }
+    const controller = new AbortController()
+    searchControllerRef.current = controller
+    setIndexing(true)
+    const timer = window.setTimeout(() => {
+      void searchBodyTextAsync(
+        session,
+        query,
+        scope,
+        activeChapterPath ?? undefined,
+        controller.signal,
+      )
+        .then((nextResults) => {
+          if (controller.signal.aborted) return
+          setResults(nextResults)
+          setIndexing(false)
+        })
+        .catch((cause: unknown) => {
+          if (controller.signal.aborted) return
+          setResults([])
+          setIndexing(false)
+          setError(
+            cause instanceof Error ? cause.message : '无法建立正文索引。',
+          )
+        })
+    }, 120)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [activeChapterPath, query, scope, session])
   const selected = results[Math.min(selectedIndex, results.length - 1)]
   const chapterCount = new Set(results.map((result) => result.chapterPath)).size
 
@@ -91,6 +143,7 @@ export function SearchReplacePanel({
             setSelectedIndex(0)
           }}
           placeholder="输入查找文字"
+          ref={queryInputRef}
           value={query}
         />
       </label>
@@ -131,11 +184,32 @@ export function SearchReplacePanel({
           全书
         </label>
       </fieldset>
-      <p className="search-summary">
-        {query === ''
-          ? '输入查找文字后开始索引。'
-          : `找到 ${String(results.length)} 处，涉及 ${String(chapterCount)} 章。`}
-      </p>
+      <div aria-live="polite" className="search-summary" role="status">
+        {indexing ? (
+          <>
+            <progress aria-label="正在建立正文索引" />
+            <span>正在后台建立正文索引…</span>
+            <button
+              className="cancel-button cancel-button--inline"
+              onClick={() => {
+                searchControllerRef.current?.abort()
+                setResults([])
+                setIndexing(false)
+                setIndexCancelled(true)
+              }}
+              type="button"
+            >
+              取消索引
+            </button>
+          </>
+        ) : query === '' ? (
+          '输入查找文字后开始索引。'
+        ) : indexCancelled ? (
+          '索引已取消；修改查找文字即可重新开始。'
+        ) : (
+          `找到 ${String(results.length)} 处，涉及 ${String(chapterCount)} 章。`
+        )}
+      </div>
       <p className="search-help">
         仅搜索正文，不搜索属性；跨 inline text segment 的词组不会匹配。
       </p>
@@ -147,7 +221,7 @@ export function SearchReplacePanel({
       <div className="search-actions">
         <button
           className="secondary-button"
-          disabled={results.length === 0}
+          disabled={indexing || results.length === 0}
           onClick={() => {
             moveSelection(-1)
           }}
@@ -162,7 +236,7 @@ export function SearchReplacePanel({
         </span>
         <button
           className="secondary-button"
-          disabled={results.length === 0}
+          disabled={indexing || results.length === 0}
           onClick={() => {
             moveSelection(1)
           }}
@@ -174,7 +248,7 @@ export function SearchReplacePanel({
       <div className="search-actions">
         <button
           className="secondary-button"
-          disabled={selected === undefined}
+          disabled={indexing || selected === undefined}
           onClick={replaceOne}
           type="button"
         >
@@ -182,7 +256,7 @@ export function SearchReplacePanel({
         </button>
         <button
           className="apply-button"
-          disabled={results.length === 0}
+          disabled={indexing || results.length === 0}
           onClick={replaceAll}
           type="button"
         >

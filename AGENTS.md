@@ -6,18 +6,18 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 
 ## Current milestone
 
-Phases 0 through 3 are complete. The user authorized Phase 4 on 2026-08-08.
-Work only on Phase 4 until the user explicitly authorizes the next phase:
+Phases 0 through 4 are complete. The user authorized Phase 5 on 2026-08-08.
+Work only on Phase 5 until the release candidate is reviewed:
 
-1. Add current-chapter and whole-book body-text search with stale-result protection.
-2. Add replace-current and atomic Replace All using only verified text segments.
-3. Add application Undo/Redo for source, visual, replace, and toc-label transactions.
-4. Add minimal-patch NAV/NCX label editing with target-based synchronization and warnings.
-5. Add UI for search results, replacement previews, toc labels, history availability, and summaries.
-6. Run full preservation/export/EPUBCheck regressions and write a Phase 4 report.
+1. Finish plain-language errors, progress/cancellation, accessibility, and narrow-screen behavior.
+2. Add real-browser smoke coverage and release-candidate packaging.
+3. Complete README, DEPLOY, compatibility, and Phase 5 release documentation.
+4. Exercise all locally available reader/browser gates and record unavailable platform gates honestly.
+5. Run full preservation/export/EPUBCheck regressions and private CI.
+6. Produce a reversible, testable V0.1 release candidate for user review.
 
-Do not add public deployment, release packaging, backend, telemetry, or AI
-during Phase 4.
+Do not publicly deploy, publish a release, merge to main, add backend,
+telemetry, accounts, or AI without explicit user approval.
 
 ## Non-negotiable constraints
 

@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import type { EpubIssue } from '../models/publication.js'
 
 export function IssuePanel({
@@ -5,6 +7,7 @@ export function IssuePanel({
 }: {
   readonly issues: readonly EpubIssue[]
 }) {
+  const headingId = useId()
   if (issues.length === 0) {
     return (
       <section className="issue-panel issue-panel--clear" aria-label="检查结果">
@@ -15,13 +18,18 @@ export function IssuePanel({
   }
 
   return (
-    <section className="issue-panel" aria-labelledby="issue-heading">
+    <section className="issue-panel" aria-labelledby={headingId}>
       <div className="section-heading">
         <div>
           <p className="eyebrow">打开检查</p>
-          <h2 id="issue-heading">问题与兼容性提示</h2>
+          <h2 id={headingId}>问题与兼容性提示</h2>
         </div>
-        <span className="issue-count">{issues.length}</span>
+        <span
+          aria-label={`${String(issues.length)} 条提示`}
+          className="issue-count"
+        >
+          {issues.length}
+        </span>
       </div>
       <ul className="issue-list">
         {issues.map((issue, index) => (

@@ -22,9 +22,11 @@ jobs:
           distribution: temurin
           java-version: 17
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npm run check
       - run: npm run test:coverage
-      - run: npm run fixture:export
+      - run: npm run test:e2e
+      - run: npm run release:package
       - name: Verify exported fixture with EPUBCheck 5.3.0
         env:
           EPUBCHECK_SHA256: 6c07e68584b2e2ce2f89fe06e1246dfead3eb36b46b340e7d93524f29dcff6c5
@@ -34,5 +36,5 @@ jobs:
             https://github.com/w3c/epubcheck/releases/download/v5.3.0/epubcheck-5.3.0.zip
           echo "$EPUBCHECK_SHA256  epubcheck.zip" | sha256sum --check --strict
           unzip -q epubcheck.zip
-          java -jar epubcheck-5.3.0/epubcheck.jar artifacts/epub2-phase2-export.epub
+          java -jar epubcheck-5.3.0/epubcheck.jar artifacts/epub2-reader-smoke.epub
       - run: npm audit --audit-level=low

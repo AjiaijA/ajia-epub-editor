@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 import { App } from '../../src/app/App.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
-describe('Phase 4 editing app', () => {
+describe('V0.1 RC editing app', () => {
   it('opens a local EPUB and exposes search, history, TOC, editing, and export controls', async () => {
     const bytes = await buildFixtureArchive('epub3-nav')
     const fileBuffer = bytes.slice().buffer
@@ -39,15 +39,16 @@ describe('Phase 4 editing app', () => {
       'sandbox',
       '',
     )
-    expect(screen.getByText(/尚无修改 · 阶段 4/u)).toBeVisible()
+    expect(screen.getByText(/尚无修改 · V0.1 RC1/u)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '查找替换' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '导出 EPUB' })).toBeEnabled()
 
     await user.click(screen.getByRole('button', { name: '查找替换' }))
+    expect(screen.getByLabelText('查找正文')).toHaveFocus()
     await user.type(screen.getByLabelText('查找正文'), '阶段一测试文字')
-    expect(screen.getByText('找到 1 处，涉及 1 章。')).toBeVisible()
+    expect(await screen.findByText('找到 1 处，涉及 1 章。')).toBeVisible()
     expect(screen.getByRole('button', { name: '上一处' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '下一处' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '全部替换 (1)' })).toBeEnabled()
@@ -64,6 +65,11 @@ describe('Phase 4 editing app', () => {
     expect(screen.getByTitle('第二章安全文字编辑')).toHaveAttribute(
       'sandbox',
       'allow-same-origin',
+    )
+
+    await user.click(screen.getByRole('button', { name: '关闭' }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '查找替换' })).toHaveFocus(),
     )
   })
 })

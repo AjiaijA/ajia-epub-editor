@@ -1,6 +1,6 @@
 {
   "name": "ajia-epub-editor",
-  "version": "0.0.0",
+  "version": "0.1.0-rc.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,10 +12,14 @@
     "format:check": "prettier --check .",
     "fixture:export": "tsx scripts/exportFixture.ts",
     "lint": "eslint .",
+    "preview": "vite preview",
+    "release:package": "tsx scripts/packageRelease.ts",
+    "release:rc": "npm run check && npm run test:coverage && npm run test:e2e && npm run release:package",
     "spike:text": "vitest run tests/unit/safeTextPatch.test.ts",
     "spike:zip": "vitest run tests/unit/epubZip.test.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "npm run fixture:export && playwright test",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
@@ -29,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.55.0",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",

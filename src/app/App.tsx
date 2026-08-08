@@ -26,6 +26,7 @@ import {
   type EpubIssue,
   type NavigationItem,
 } from '../models/publication.js'
+import { RELEASE_LABEL } from '../release.js'
 import { openPublicationAsync } from './openPublicationAsync.js'
 import { exportEpubAsync } from './exportEpubAsync.js'
 
@@ -49,6 +50,7 @@ export function App() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [selectedTocId, setSelectedTocId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
   const openTaskRef = useRef<AbortController | null>(null)
   const pendingVisualRef = useRef<{
     readonly segmentId: string
@@ -405,13 +407,19 @@ export function App() {
             if (file !== undefined) void openFile(file)
           }}
         >
-          <p className="phase-label">阶段 4 · 查找、目录与历史</p>
+          <p className="phase-label">{RELEASE_LABEL} · 本地测试版本</p>
           <h2>
             {state.kind === 'loading'
               ? `正在检查 ${state.fileName}`
               : '打开一本本地 EPUB'}
           </h2>
           <p>先检查压缩包安全与书籍结构，再在本地进行源码修订。</p>
+          {state.kind === 'loading' ? (
+            <div aria-live="polite" className="task-progress" role="status">
+              <progress aria-label="正在安全检查 EPUB" />
+              <span>正在后台检查压缩包、书籍结构和目录…</span>
+            </div>
+          ) : null}
           <button
             className="primary-button"
             disabled={state.kind === 'loading'}
@@ -479,6 +487,7 @@ export function App() {
           <button
             className="secondary-button"
             onClick={openSearch}
+            ref={searchButtonRef}
             type="button"
           >
             查找替换
@@ -515,6 +524,13 @@ export function App() {
         </div>
       </header>
 
+      {exporting ? (
+        <div aria-live="polite" className="task-status" role="status">
+          <progress aria-label="正在导出 EPUB" />
+          正在后台验证并生成新 EPUB，请保持页面开启…
+        </div>
+      ) : null}
+
       <div className="reader-grid">
         <aside className="sidebar">
           <div className="book-meta">
@@ -542,6 +558,7 @@ export function App() {
             }
             items={currentNavigation?.items ?? []}
             onSelect={selectChapter}
+            selectedItemId={selectedTocId}
           />
           {selectedTocItem === null ||
           selectedTocItem.sources[0]?.kind === 'spine' ? null : (
@@ -729,6 +746,7 @@ export function App() {
               onApply={applySession}
               onClose={() => {
                 setSearchOpen(false)
+                window.setTimeout(() => searchButtonRef.current?.focus(), 0)
               }}
               onNavigate={(path) => {
                 selectChapter(path)
@@ -764,7 +782,8 @@ export function App() {
             Redo
           </button>
           <span>
-            {readySession.transactions.at(-1)?.summary ?? '尚无修改'} · 阶段 4
+            {readySession.transactions.at(-1)?.summary ?? '尚无修改'} ·{' '}
+            {RELEASE_LABEL}
           </span>
         </span>
       </footer>

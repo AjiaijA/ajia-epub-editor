@@ -6,7 +6,7 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 
 ## 当前状态
 
-阶段 0 至阶段 4 已经通过。项目现已完成 V0.1 阶段 4：查找替换、事务历史和目录改名。
+阶段 0 至阶段 5 的代码与自动化门禁已经完成。当前候选版本为 **V0.1 RC1**（`0.1.0-rc.1`），用于私有测试和阅读器兼容性确认，尚未正式公开发布。
 
 当前可以：
 
@@ -23,7 +23,7 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 11. 对源码、可视文字、替换和目录改名执行 Undo/Redo；
 12. 只改 NAV/NCX 目录标签文字，并在唯一目标匹配时同步两种目录。
 
-打开、解析和导出在浏览器 Worker 中运行。全书搜索目前在浏览器主线程完成；超大文本型书籍的索引 Worker和最终兼容性验收留到阶段 5。
+打开、解析、全书搜索和导出均在浏览器 Worker 中运行，并显示可访问的任务状态；打开和搜索支持取消。应用没有后端、账户、遥测或 AI，也不会主动发送书籍内容。
 
 完整需求见 [docs/product-requirements.md](docs/product-requirements.md)。
 
@@ -67,10 +67,22 @@ npm run spike:zip
 npm run spike:text
 npm run check
 npm run test:coverage
-npm run fixture:export
+npm run test:e2e
+npm run build
+npm run release:package
 npm audit
 ```
 
-CI 使用固定版本和 SHA-256 的 EPUBCheck 5.3.0 校验自建导出 fixture。
+`npm run test:e2e` 使用自建 EPUB 在 Chromium 中完成打开、目录改名、Undo/Redo、全书替换、导出、重新解析和窄屏检查。CI 使用固定版本和 SHA-256 的 EPUBCheck 5.3.0 校验自建导出 fixture。
 
-未经确认，不部署到 `ajia.site`，不加入后端、遥测、账户或 AI 功能。
+## 测试候选版本
+
+运行 `npm run build && npm run release:package` 后，会在 `artifacts/` 生成：
+
+- `ajia-epub-editor-v0.1.0-rc.1.zip`：可放入任意静态网站目录的版本包；
+- 同名 `.sha256`：包体完整性校验；
+- `epub2-reader-smoke.epub`：自建、可再分发的阅读器冒烟样本。
+
+在仓库中运行 `npm run preview` 可预览刚构建的 `dist/`。部署和回滚步骤见 [DEPLOY.md](DEPLOY.md)，兼容性实测状态见 [docs/compatibility.md](docs/compatibility.md)。Apple Books、Calibre 和 Thorium 的人工阅读器确认仍是从 RC 升为正式 V0.1 的发布门禁。
+
+未经确认，不部署到 `ajia.site`、不创建公开 release，也不加入后端、遥测、账户或 AI 功能。

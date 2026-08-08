@@ -1,6 +1,6 @@
 # Security
 
-Status: Phase 4 archive intake, minimal text/navigation patching, reversible transactions, and export controls implemented.
+Status: V0.1 RC1 archive intake, isolated editing, background search, reversible transactions, and release controls implemented.
 
 ## Archive gate
 
@@ -132,9 +132,15 @@ invariance tests are maintained independently.
 No book content may be sent to analytics, error reporting, AI services, or
 application servers in any phase.
 
-Whole-book search currently executes on the UI thread. Archive size limits
-bound the input, but unusually text-heavy books may cause temporary UI delay;
-moving indexing to a Worker remains a Phase 5 performance hardening item.
+Whole-book search executes in a dedicated Worker and can be cancelled by
+terminating that Worker. Search messages use browser structured cloning only;
+they are never sent to a service or logged. Opening and export use independent
+Workers so no Worker has a persistent content store.
+
+The release package is static and contains no credential, endpoint, service
+worker, analytics SDK, or remote font/script. Deployment guidance requires a
+restrictive page CSP and a versioned, reversible directory switch. The RC ZIP
+has a SHA-256 sidecar for transport verification.
 
 EPUBCheck is a CI/build-time tool only. The browser never uploads a user's book
 for conformance checking. CI downloads the pinned 5.3.0 distribution and first

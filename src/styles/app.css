@@ -28,7 +28,10 @@ input {
   font: inherit;
 }
 button:focus-visible,
-summary:focus-visible {
+summary:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[contenteditable='true']:focus-visible {
   outline: 3px solid #cf783f;
   outline-offset: 3px;
 }
@@ -131,6 +134,31 @@ summary:focus-visible {
   color: #73695f;
   line-height: 1.7;
 }
+.task-progress,
+.task-status,
+.search-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.task-progress {
+  margin-top: 18px;
+  color: #52605c;
+  font-size: 13px;
+}
+.task-status {
+  justify-content: center;
+  padding: 8px 18px;
+  border-bottom: 1px solid #d8d1c7;
+  color: #315c50;
+  background: #edf5f1;
+  font-size: 12px;
+  font-weight: 700;
+}
+progress {
+  max-width: 110px;
+  accent-color: #315c50;
+}
 .primary-button,
 .secondary-button {
   border: 0;
@@ -158,6 +186,10 @@ summary:focus-visible {
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+.cancel-button--inline {
+  margin: 0 0 0 auto;
+  white-space: nowrap;
 }
 .secondary-button {
   padding: 10px 16px;
@@ -651,6 +683,14 @@ summary:focus-visible {
   }
   .reader-header {
     align-items: flex-start;
+    flex-direction: column;
+  }
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .header-actions button {
+    flex: 1 1 auto;
   }
   .local-badge {
     display: none;
@@ -677,5 +717,14 @@ summary:focus-visible {
   .reader-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Phase 4 search, transactions, and navigation editing complete on 2026-08-08.
+Status: V0.1 RC1 architecture complete on 2026-08-08.
 
 ## Phase 1 read pipeline
 
@@ -198,9 +198,19 @@ toolchain.
 
 ## Deferred architecture
 
-Search currently runs synchronously over bounded in-memory chapter sources;
-large-book profiling may justify a dedicated index Worker in Phase 5. The
-parser and exporter also materialize complete bounded archives in Worker
-memory. Streamed processing remains a performance and defense-in-depth
-improvement. Phase 5 may split the main UI bundle, but must not introduce a
+Whole-book search now runs in a cancellable dedicated Worker; unit tests retain
+a deterministic in-process fallback. Opening and export use separate Workers.
+The parser and exporter still materialize complete bounded archives in Worker
+memory, so streamed processing remains a later performance and
+defense-in-depth improvement. The main UI bundle also remains large enough to
+trigger Vite's chunk-size advisory; future code splitting must not introduce a
 second save authority or DOM serialization path.
+
+### Release boundary
+
+V0.1 RC packaging includes only the Vite static build plus a small
+`release.json`. `scripts/packageRelease.ts` fixes ZIP entry timestamps, sorts
+paths, emits a versioned archive, and writes a SHA-256 sidecar. Runtime and
+deployment remain separate: the package can be served below a versioned static
+directory, tested, and rolled back without modifying source EPUB files or
+server-side state.

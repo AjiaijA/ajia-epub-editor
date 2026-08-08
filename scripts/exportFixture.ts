@@ -7,7 +7,7 @@ import { openEpubPublication } from '../src/epub/parser/publication.js'
 import { buildFixtureArchive } from '../tests/support/fixtureArchive.js'
 
 const outputDirectory = resolve(process.cwd(), 'artifacts')
-const outputPath = resolve(outputDirectory, 'epub2-phase2-export.epub')
+const outputPath = resolve(outputDirectory, 'epub2-reader-smoke.epub')
 const fixtureBytes = await buildFixtureArchive('epub2-ncx')
 const publication = openEpubPublication(fixtureBytes, 'epub2-phase2.epub')
 const chapter = publication.chapters[0]

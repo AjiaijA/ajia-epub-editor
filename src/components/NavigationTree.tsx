@@ -5,6 +5,7 @@ interface NavigationTreeProps {
   readonly availablePaths: ReadonlySet<string>
   readonly items: readonly NavigationItem[]
   readonly onSelect: (path: string, item: NavigationItem) => void
+  readonly selectedItemId: string | null
 }
 
 export function NavigationTree({
@@ -12,6 +13,7 @@ export function NavigationTree({
   availablePaths,
   items,
   onSelect,
+  selectedItemId,
 }: NavigationTreeProps) {
   return (
     <nav aria-label="书籍目录" className="navigation-tree">
@@ -21,6 +23,7 @@ export function NavigationTree({
         items={items}
         level={1}
         onSelect={onSelect}
+        selectedItemId={selectedItemId}
       />
     </nav>
   )
@@ -32,6 +35,7 @@ function TreeLevel({
   items,
   level,
   onSelect,
+  selectedItemId,
 }: NavigationTreeProps & { readonly level: number }) {
   return (
     <ul
@@ -49,7 +53,11 @@ function TreeLevel({
           >
             <button
               aria-current={
-                path !== null && path === activePath ? 'page' : undefined
+                path !== null &&
+                path === activePath &&
+                item.id === selectedItemId
+                  ? 'page'
+                  : undefined
               }
               className="toc-button"
               disabled={disabled}
@@ -71,6 +79,7 @@ function TreeLevel({
                 items={item.children}
                 level={level + 1}
                 onSelect={onSelect}
+                selectedItemId={selectedItemId}
               />
             ) : null}
           </li>
