@@ -87,6 +87,9 @@ the official JAR against that artifact. Private CI run `31252143276` passed this
 gate on 2026-08-08. Internal export, reopen, header, and byte-preservation checks
 also passed locally.
 
+Phase 3 private CI run `31252858027` repeated the complete gate with the visual
+editing implementation and passed EPUBCheck 5.3.0.
+
 ## Not yet claimed
 
 Phase 3 does not yet claim full coverage for BOM package fixtures, ZIP64,

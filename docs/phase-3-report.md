@@ -30,8 +30,8 @@ receive safe visual editing and retain preview/source fallback.
   sentence containing `& < >`, switched to preview, and confirmed one dirty
   entry/transaction. Source mode showed `&amp; &lt; &gt;` escapes, and browser
   export reported creation of a new `-edited.epub` without overwriting input.
-- Phase 2 private CI run `31252143276` passed pinned EPUBCheck 5.3.0. The Phase 3
-  branch must pass the same private CI gate before the milestone is closed.
+- Phase 3 private CI run `31252858027` passed all checks, including pinned
+  EPUBCheck 5.3.0, on the committed implementation.
 
 ## Residual risks
 
@@ -46,6 +46,6 @@ receive safe visual editing and retain preview/source fallback.
 
 ## Recommendation
 
-After the private Phase 3 CI/EPUBCheck run is green, proceed to Phase 4 using
-the same revision-bound segment and atomic transaction boundaries. Do not add a
-second whole-source replacement path.
+The Phase 3 CI/EPUBCheck gate is green. Phase 4 can proceed using the same
+revision-bound segment and atomic transaction boundaries. Do not add a second
+whole-source replacement path.
