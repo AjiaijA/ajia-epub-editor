@@ -37,8 +37,9 @@ added.
   The dependency audit reports zero vulnerabilities. Two consecutive package
   runs produced the same SHA-256:
   `2a48d2778430041b86604d4c860443992babdc6d4a9cf2830a4ffb1a303e50e5`.
-- Final EPUBCheck and private CI evidence are recorded after the branch is
-  committed.
+- Private CI run `31257502823` passed the committed candidate in 1m43s,
+  including Linux Chromium E2E, release packaging, pinned EPUBCheck 5.3.0, and
+  the zero-vulnerability audit.
 
 ## Reader compatibility status
 

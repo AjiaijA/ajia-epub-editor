@@ -124,6 +124,10 @@ Phase 4 private CI run `31253993587` passed all checks, including the search,
 history, synchronized navigation export regressions, zero-vulnerability audit,
 and pinned EPUBCheck 5.3.0 gate.
 
+V0.1 RC1 private CI run `31257502823` passed in 1m43s. It added Linux Chromium
+installation, the real-browser release flow, deterministic RC packaging, and
+then repeated the pinned EPUBCheck 5.3.0 and zero-vulnerability gates.
+
 ## Not yet claimed
 
 V0.1 RC1 does not yet claim full coverage for BOM package fixtures, ZIP64,
