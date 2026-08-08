@@ -37,4 +37,5 @@ jobs:
           echo "$EPUBCHECK_SHA256  epubcheck.zip" | sha256sum --check --strict
           unzip -q epubcheck.zip
           java -jar epubcheck-5.3.0/epubcheck.jar artifacts/epub2-reader-smoke.epub
+          java -jar epubcheck-5.3.0/epubcheck.jar artifacts/epub2-reader-smoke-edited.epub
       - run: npm audit --audit-level=low

@@ -12,7 +12,7 @@ Status: V0.1 RC1 automated and Chromium evidence recorded on 2026-08-08; native 
 | Search responsiveness    | Dedicated cancellable Worker with fallback unit tests    | Pass                 |
 | Release package          | Versioned static ZIP plus SHA-256 sidecar                | Pass                 |
 | Apple Books              | Requires macOS hardware/manual import                    | Pending release gate |
-| Calibre Ebook Viewer     | Not installed on the current Windows test host           | Pending release gate |
+| Calibre 9.11 Viewer      | Edited EPUB loads; metadata and body parse verified      | Partial pass         |
 | Thorium Reader           | Not installed on the current Windows test host           | Pending release gate |
 
 ## Phase 4 search, history, and TOC matrix
@@ -127,6 +127,20 @@ and pinned EPUBCheck 5.3.0 gate.
 V0.1 RC1 private CI run `31257502823` passed in 1m43s. It added Linux Chromium
 installation, the real-browser release flow, deterministic RC packaging, and
 then repeated the pinned EPUBCheck 5.3.0 and zero-vulnerability gates.
+
+## Calibre 9.11 smoke evidence
+
+The installed `C:\Program Files\Calibre2\ebook-viewer.exe` opened
+`epub2-reader-smoke-edited.epub` in a responsive window titled
+“阶段一 EPUB 2 测试书 [EPUB] — 电子书阅读器”. Calibre's `ebook-meta` read the
+Chinese title and language, and `ebook-convert` parsed the EPUB input and
+extracted “这是自建的 EPUB 2 RC 阅读器测试文字。” without error.
+
+The Windows UI control bridge failed while requesting a screenshot, so the NCX
+label and close/reopen behavior have not been independently observed by the
+agent. The viewer remains open for a human visual check of “RC 阅读器测试目录”
+and the edited sentence. Calibre is therefore recorded as a partial pass, not a
+completed release gate.
 
 ## Not yet claimed
 
