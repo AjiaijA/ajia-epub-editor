@@ -15,6 +15,7 @@ import {
   normalizedText,
   parseXml,
 } from './xml.js'
+import { findSafeVisualTextSegments } from '../text/safeTextPatch.js'
 
 export function openEpubPublication(
   bytes: Uint8Array,
@@ -82,7 +83,7 @@ export function openEpubPublication(
     }
 
     let title = fileNameFromPath(item.archivePath)
-    let capability: 'readonly' | 'source-only' = 'readonly'
+    let capability: 'readonly' | 'safe' | 'source-only' = 'readonly'
     let sourceEditCapability: 'editable' | 'encrypted' = 'editable'
     if (encryptedPaths.has(item.archivePath)) {
       capability = 'source-only'
@@ -100,6 +101,18 @@ export function openEpubPublication(
           normalizedText(
             descendantsByLocalName(chapterDocument, 'title')[0] ?? null,
           ) || title
+        try {
+          findSafeVisualTextSegments(source, item.archivePath, 0)
+          capability = 'safe'
+        } catch (cause) {
+          issues.push({
+            code: 'chapter.visual-edit-readonly',
+            ...(cause instanceof Error ? { detail: cause.message } : {}),
+            message: `章节“${item.href}”包含复杂内容，可预览但只允许源码编辑。`,
+            path: item.archivePath,
+            severity: 'info',
+          })
+        }
       } catch (cause) {
         capability = 'source-only'
         issues.push({

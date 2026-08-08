@@ -8,8 +8,8 @@ import { describe, expect, it } from 'vitest'
 import { App } from '../../src/app/App.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
-describe('Phase 2 source editor app', () => {
-  it('opens a local EPUB and exposes navigation, source mode, preview, and export', async () => {
+describe('Phase 3 safe visual editor app', () => {
+  it('opens a local EPUB and exposes safe, source, preview, and export modes', async () => {
     const bytes = await buildFixtureArchive('epub3-nav')
     const fileBuffer = bytes.slice().buffer
     const file = new File([fileBuffer], '阶段一.epub', {
@@ -39,7 +39,7 @@ describe('Phase 2 source editor app', () => {
       'sandbox',
       '',
     )
-    expect(screen.getByText(/阶段 2 · 原文件永不覆盖/u)).toBeVisible()
+    expect(screen.getByText(/阶段 3 · 原文件永不覆盖/u)).toBeVisible()
     expect(screen.getByRole('button', { name: '导出 EPUB' })).toBeEnabled()
 
     await user.click(screen.getByRole('tab', { name: 'XHTML 源码' }))
@@ -49,6 +49,11 @@ describe('Phase 2 source editor app', () => {
     await user.click(screen.getByRole('button', { name: /第二章/u }))
     await waitFor(() =>
       expect(screen.getByTitle('第二章只读预览')).toBeVisible(),
+    )
+    await user.click(screen.getByRole('tab', { name: '安全编辑' }))
+    expect(screen.getByTitle('第二章安全文字编辑')).toHaveAttribute(
+      'sandbox',
+      'allow-same-origin',
     )
   })
 })

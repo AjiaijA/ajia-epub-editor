@@ -1,6 +1,6 @@
 # Security
 
-Status: Phase 2 archive intake, source validation, and export controls implemented.
+Status: Phase 3 archive intake, safe visual editing, source validation, and export controls implemented.
 
 ## Archive gate
 
@@ -36,8 +36,11 @@ Remote CSS imports and URL values are removed. Local CSS, images, fonts and
 media are resolved only against archive entries and embedded as generated data
 URLs. No HTTP/HTTPS fetch is performed.
 
-The preview iframe has `sandbox=""`, without `allow-scripts` or
-`allow-same-origin`, and receives this CSP policy:
+Read-only preview uses `sandbox=""`. Safe visual editing uses
+`sandbox="allow-same-origin"` only so the parent application can attach input
+guards to verified text spans. Neither mode has `allow-scripts`; active EPUB
+elements and event attributes are removed before rendering, and both receive
+this CSP policy:
 
 ```text
 default-src 'none'; img-src data: blob:; style-src 'unsafe-inline';
@@ -63,6 +66,20 @@ Worker, creates a new file, checks the required EPUB `mimetype` local header,
 byte-compares extracted payloads, and reopens the result through the archive
 gate before presenting a download.
 
+## Safe visual input controls
+
+Editable spans are generated from revision-bound source mappings; EPUB markup
+cannot declare them. `beforeinput` permits only text insertion, IME composition,
+and deletion within one segment. Enter/paragraph creation, formatting, object
+insertion, history commands, and cross-segment selections are blocked. Paste is
+prevented and reconstructed solely as a text node from `text/plain`; drop is
+always blocked. If a browser nevertheless creates a child element, the segment
+is reset instead of committed.
+
+Composition ends and focus/mode/chapter changes flush pending text through the
+same stale-ID, XML, and fingerprint checks. The application reads only
+`textContent`; iframe `innerHTML` is never authoritative or saved.
+
 ## Phase 0 controls
 
 - Processing code is local and has no network, backend, telemetry, analytics, or
@@ -81,7 +98,7 @@ gate before presenting a download.
 
 ## Remaining security limits
 
-Phase 2 relies on central-directory declared sizes before `fflate` extraction.
+Phase 3 relies on central-directory declared sizes before `fflate` extraction.
 Payload sizes are checked again afterward, but extraction is not yet an
 incremental stream with a live output-byte abort. Work runs in a cancellable
 Worker so the UI remains isolated, but peak memory can approach the configured

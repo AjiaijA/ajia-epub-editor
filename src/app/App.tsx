@@ -2,11 +2,14 @@ import { useMemo, useRef, useState, type RefObject } from 'react'
 
 import { IssuePanel } from '../components/IssuePanel.js'
 import { NavigationTree } from '../components/NavigationTree.js'
+import { SafeVisualEditor } from '../components/SafeVisualEditor.js'
 import { SourceEditor } from '../components/SourceEditor.js'
 import {
   commitChapterSource,
+  commitVisualText,
   createEditSession,
   getChapterSource,
+  getChapterTextSegments,
   SourceValidationError,
 } from '../epub/editor/editSession.js'
 import { ExportValidationError } from '../epub/exporter/exportEpub.js'
@@ -26,7 +29,7 @@ type AppState =
   | { readonly issues: readonly EpubIssue[]; readonly kind: 'error' }
   | { readonly kind: 'ready'; readonly session: EpubEditSession }
 
-type EditorMode = 'preview' | 'source'
+type EditorMode = 'preview' | 'source' | 'visual'
 
 export function App() {
   const [state, setState] = useState<AppState>({ kind: 'empty' })
@@ -34,10 +37,15 @@ export function App() {
   const [mode, setMode] = useState<EditorMode>('preview')
   const [draft, setDraft] = useState('')
   const [sourceError, setSourceError] = useState<string | null>(null)
+  const [visualError, setVisualError] = useState<string | null>(null)
   const [exportIssues, setExportIssues] = useState<readonly EpubIssue[]>([])
   const [exporting, setExporting] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const openTaskRef = useRef<AbortController | null>(null)
+  const pendingVisualRef = useRef<{
+    readonly segmentId: string
+    readonly text: string
+  } | null>(null)
 
   const session = state.kind === 'ready' ? state.session : null
   const publication = session?.publication ?? null
@@ -51,10 +59,25 @@ export function App() {
     session !== null && activeChapter !== null
       ? getChapterSource(session, activeChapter.archivePath)
       : ''
+  const visualSegments = useMemo(() => {
+    if (
+      session === null ||
+      activeChapter === null ||
+      activeChapter.visualEditCapability !== 'safe'
+    ) {
+      return []
+    }
+    try {
+      return getChapterTextSegments(session, activeChapter.archivePath)
+    } catch {
+      return []
+    }
+  }, [activeChapter, session])
   const preview = useMemo(() => {
     if (
       publication === null ||
-      activeChapter?.visualEditCapability !== 'readonly'
+      activeChapter === null ||
+      activeChapter.visualEditCapability === 'source-only'
     ) {
       return null
     }
@@ -62,11 +85,12 @@ export function App() {
       return createSandboxedPreview(
         { ...activeChapter, originalSource: currentSource },
         publication.archive,
+        mode === 'visual' ? { editableSegments: visualSegments } : {},
       )
     } catch {
       return null
     }
-  }, [activeChapter, currentSource, publication])
+  }, [activeChapter, currentSource, mode, publication, visualSegments])
 
   async function openFile(file: File): Promise<void> {
     if (
@@ -124,10 +148,13 @@ export function App() {
     setMode('preview')
     setDraft('')
     setSourceError(null)
+    setVisualError(null)
     setExportIssues([])
+    pendingVisualRef.current = null
   }
 
   function commitDraft(sourceSession: EpubEditSession): EpubEditSession | null {
+    if (mode === 'visual') return flushVisualDraft(sourceSession)
     if (activeChapter === null || mode !== 'source') return sourceSession
     const savedSource = getChapterSource(
       sourceSession,
@@ -157,6 +184,34 @@ export function App() {
     }
   }
 
+  function flushVisualDraft(
+    sourceSession: EpubEditSession,
+  ): EpubEditSession | null {
+    const pending = pendingVisualRef.current
+    if (pending === null || activeChapter === null) return sourceSession
+    try {
+      const nextSession = commitVisualText(
+        sourceSession,
+        activeChapter.archivePath,
+        pending.segmentId,
+        pending.text,
+      )
+      pendingVisualRef.current = null
+      setState({ kind: 'ready', session: nextSession })
+      setDraft(getChapterSource(nextSession, activeChapter.archivePath))
+      setVisualError(null)
+      setExportIssues([])
+      return nextSession
+    } catch (cause) {
+      setVisualError(
+        cause instanceof Error
+          ? cause.message
+          : '安全文字修改失败，请切换源码模式检查。',
+      )
+      return null
+    }
+  }
+
   function selectChapter(path: string): void {
     if (session === null) return
     const nextSession = commitDraft(session)
@@ -170,6 +225,24 @@ export function App() {
     if (session === null) return
     const nextSession = commitDraft(session)
     if (nextSession !== null) setMode('preview')
+  }
+
+  function showVisual(): void {
+    if (session === null || activeChapter?.visualEditCapability !== 'safe') {
+      setVisualError('本章包含复杂结构，请使用预览或 XHTML 源码模式。')
+      return
+    }
+    const nextSession = commitDraft(session)
+    if (nextSession !== null) {
+      setVisualError(null)
+      setMode('visual')
+    }
+  }
+
+  function applyVisualEdit(segmentId: string, text: string): void {
+    if (session === null) return
+    pendingVisualRef.current = { segmentId, text }
+    flushVisualDraft(session)
   }
 
   function showSource(): void {
@@ -254,7 +327,7 @@ export function App() {
             if (file !== undefined) void openFile(file)
           }}
         >
-          <p className="phase-label">阶段 2 · 源码编辑与可靠导出</p>
+          <p className="phase-label">阶段 3 · 安全文字编辑</p>
           <h2>
             {state.kind === 'loading'
               ? `正在检查 ${state.fileName}`
@@ -380,7 +453,11 @@ export function App() {
           <div className="reading-toolbar reading-toolbar--editor">
             <div>
               <p className="eyebrow">
-                {mode === 'preview' ? '隔离预览' : '高级源码模式'}
+                {mode === 'preview'
+                  ? '隔离预览'
+                  : mode === 'visual'
+                    ? '安全文字编辑'
+                    : '高级源码模式'}
               </p>
               <h2 id="chapter-heading">
                 {activeChapter?.title ?? '没有可用章节'}
@@ -392,7 +469,21 @@ export function App() {
                   已隔离 · 拦截 {preview.blockedResourceCount} 项
                 </span>
               ) : null}
+              {mode === 'visual' ? (
+                <span className="sanitization-badge">
+                  虚线文字可编辑 · {visualSegments.length} 段
+                </span>
+              ) : null}
               <div className="editor-tabs" role="tablist" aria-label="章节视图">
+                <button
+                  aria-selected={mode === 'visual'}
+                  disabled={activeChapter?.visualEditCapability !== 'safe'}
+                  onClick={showVisual}
+                  role="tab"
+                  type="button"
+                >
+                  安全编辑
+                </button>
                 <button
                   aria-selected={mode === 'preview'}
                   onClick={showPreview}
@@ -412,6 +503,13 @@ export function App() {
               </div>
             </div>
           </div>
+
+          {visualError === null ? null : (
+            <div className="source-error" role="alert">
+              <strong>安全编辑提示</strong>
+              <span>{visualError}</span>
+            </div>
+          )}
 
           {mode === 'source' ? (
             sourceLocked ? (
@@ -471,6 +569,20 @@ export function App() {
                 )}
               </div>
             )
+          ) : mode === 'visual' &&
+            activeChapter !== null &&
+            preview !== null ? (
+            <SafeVisualEditor
+              key={`${activeChapter.archivePath}:${String(readySession.chapterRevisions.get(activeChapter.archivePath) ?? 0)}`}
+              onCommit={applyVisualEdit}
+              onDraftChange={(segmentId, text) => {
+                pendingVisualRef.current = { segmentId, text }
+              }}
+              onError={setVisualError}
+              preview={preview}
+              segments={visualSegments}
+              title={activeChapter.title}
+            />
           ) : activeChapter === null ? (
             <div className="empty-preview">
               spine 中没有可读取的 XHTML 章节。
@@ -499,9 +611,9 @@ export function App() {
       <footer className="reader-footer">
         <span>
           本地处理 · 已修改 {readySession.dirtyEntries.size} 个 entry ·{' '}
-          {readySession.transactions.length} 次源码提交
+          {readySession.transactions.length} 次编辑提交
         </span>
-        <span>阶段 2 · 原文件永不覆盖</span>
+        <span>阶段 3 · 原文件永不覆盖</span>
       </footer>
     </main>
   )

@@ -1,6 +1,23 @@
 # Compatibility
 
-Status: Phase 2 automated source/export evidence recorded on 2026-08-08.
+Status: Phase 3 automated and browser safe-edit evidence recorded on 2026-08-08.
+
+## Phase 3 safe visual-edit matrix
+
+| Behavior                   | Evidence                                                         | Result |
+| -------------------------- | ---------------------------------------------------------------- | ------ |
+| Inline text mapping        | Text before, inside, and after an inline element maps separately | Pass   |
+| Single sentence patch      | Only one exact source slice changes                              | Pass   |
+| XML special characters     | `& < >` become XML text escapes                                  | Pass   |
+| Structure fingerprint      | Elements, attributes, text positions, comment/PI/CDATA unchanged | Pass   |
+| Stale segment              | Old revision-bound ID is rejected                                | Pass   |
+| Source re-tokenization     | Accepted edit generates new segment IDs                          | Pass   |
+| Chinese IME input type     | Composition text is permitted and committed at composition end   | Pass   |
+| Plain-text paste           | Inserted as a text node; rich/structural paste cannot enter      | Pass   |
+| Enter, formatting and drop | Input policy blocks structural operations                        | Pass   |
+| Complex script/SVG/MathML  | Downgrades to preview/source editing                             | Pass   |
+| Visual export round trip   | Edited XHTML reopens; every clean entry remains byte-identical   | Pass   |
+| Chromium local interaction | Edit → preview → source shows escaped text and one dirty entry   | Pass   |
 
 ## Phase 2 source and export matrix
 
@@ -66,23 +83,21 @@ The same core modules are TypeScript-checked and built as ES modules.
 
 `npm run fixture:export` generates a self-authored EPUB 2 result from the real
 exporter. CI pins EPUBCheck 5.3.0, verifies the downloaded ZIP SHA-256, and runs
-the official JAR against that artifact. This machine did not have Java and its
-shell could not download the GitHub release asset, so the official JAR run is
-not claimed as local evidence; it remains a required CI gate on any future
-push. Internal export, reopen, header, and byte-preservation checks passed
-locally.
+the official JAR against that artifact. Private CI run `31252143276` passed this
+gate on 2026-08-08. Internal export, reopen, header, and byte-preservation checks
+also passed locally.
 
 ## Not yet claimed
 
-Phase 1 does not yet claim full coverage for BOM package fixtures, ZIP64,
+Phase 3 does not yet claim full coverage for BOM package fixtures, ZIP64,
 legacy CP437 filename encoding, all EPUB namespace variants, deeply malformed
 but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
 Apple Books, Calibre and a browser-engine reader smoke test remain release
-requirements. Phase 2 also does not certify fixed-layout fidelity, visual
-editing, navigation rewrites, search/replace, or application history.
+requirements. Phase 3 also does not certify fixed-layout fidelity, SVG/MathML
+visual editing, navigation rewrites, search/replace, or application history.
 
 The broader fixture matrix in `product-requirements.md` remains the acceptance
 target and must not be inferred from this single passing fixture.

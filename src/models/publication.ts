@@ -41,7 +41,7 @@ export interface ChapterDocument {
   readonly sourceEditCapability: 'editable' | 'encrypted'
   readonly sourceEncoding: 'utf-8' | 'utf-8-bom'
   readonly title: string
-  readonly visualEditCapability: 'readonly' | 'source-only'
+  readonly visualEditCapability: 'readonly' | 'safe' | 'source-only'
 }
 
 export interface SourceEditTransaction {
@@ -52,13 +52,25 @@ export interface SourceEditTransaction {
   readonly type: 'source-edit'
 }
 
+export interface TextEditTransaction {
+  readonly afterText: string
+  readonly beforeText: string
+  readonly chapterPath: string
+  readonly revision: number
+  readonly segmentId: string
+  readonly type: 'text-edit'
+}
+
+export type EditTransaction = SourceEditTransaction | TextEditTransaction
+
 export interface EpubEditSession {
+  readonly chapterRevisions: ReadonlyMap<string, number>
   readonly currentSources: ReadonlyMap<string, string>
   readonly dirtyEntries: ReadonlySet<string>
   readonly modifiedEntries: ReadonlyMap<string, Uint8Array>
   readonly publication: EpubPublication
   readonly revision: number
-  readonly transactions: readonly SourceEditTransaction[]
+  readonly transactions: readonly EditTransaction[]
 }
 
 export interface NavigationSourceRef {

@@ -6,18 +6,18 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 
 ## Current milestone
 
-Phases 0 and 1 are complete. The user authorized Phase 2 on 2026-08-08. Work
-only on Phase 2 until the user explicitly authorizes the next phase:
+Phases 0 through 2 are complete. The user authorized Phase 3 on 2026-08-08.
+Work only on Phase 3 until the user explicitly authorizes the next phase:
 
-1. Add CodeMirror 6 XHTML source editing with explicit XML validation.
-2. Track source-edit transactions as modified bytes and dirty archive entries without mutating original bytes.
-3. Add lightweight pre-export validation and block structural/archive errors.
-4. Export a new preserve-first EPUB, then verify mimetype headers, clean payload bytes, and reopenability.
-5. Add fixture export and EPUBCheck 5.3.0 CI validation.
-6. Add no-op and source-edit export integration tests and write a Phase 2 report.
+1. Build XML-aware body text segments with revision-bound IDs and source offsets.
+2. Apply visual edits only through minimal, XML-escaped source patches with structure fingerprints.
+3. Add a safe visual-edit surface with composition, beforeinput, paste, and drop controls.
+4. Re-tokenize after every accepted source or visual edit and invalidate stale segment IDs.
+5. Cover single-character, sentence, special-character, complex inline, stale, paste, and Chinese IME cases.
+6. Run the full export/EPUBCheck regression suite and write a Phase 3 report.
 
-Do not add safe visual text editing, search/replace, navigation editing,
-application Undo/Redo, deployment, backend, telemetry, or AI during Phase 2.
+Do not add search/replace, navigation editing, application Undo/Redo, public
+deployment, backend, telemetry, or AI during Phase 3.
 
 ## Non-negotiable constraints
 

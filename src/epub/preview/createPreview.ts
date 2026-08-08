@@ -1,6 +1,7 @@
-import { XMLSerializer, type Element } from '@xmldom/xmldom'
+import { XMLSerializer, type Element, type Node } from '@xmldom/xmldom'
 
 import type { ChapterDocument, EpubArchive } from '../../models/publication.js'
+import type { TextSegment } from '../text/safeTextPatch.js'
 import { resolveArchiveHref } from '../archive/pathSafety.js'
 import {
   descendantsByLocalName,
@@ -30,18 +31,28 @@ const PREVIEW_CSP = [
 
 export interface PreviewResult {
   readonly blockedResourceCount: number
+  readonly editableSegmentCount: number
   readonly html: string
+}
+
+export interface PreviewOptions {
+  readonly editableSegments?: readonly TextSegment[]
 }
 
 export function createSandboxedPreview(
   chapter: ChapterDocument,
   archive: EpubArchive,
+  options: PreviewOptions = {},
 ): PreviewResult {
-  if (chapter.visualEditCapability !== 'readonly') {
+  if (chapter.visualEditCapability === 'source-only') {
     throw new Error('该章节已降级，不能生成可视预览。')
   }
   const document = parseXml(chapter.originalSource, chapter.archivePath)
   let blockedResourceCount = 0
+  const editableSegmentCount = wrapEditableTextNodes(
+    document.documentElement,
+    options.editableSegments ?? [],
+  )
 
   blockedResourceCount += replaceStylesheets(
     document.documentElement,
@@ -144,11 +155,62 @@ export function createSandboxedPreview(
     csp.setAttribute('http-equiv', 'Content-Security-Policy')
     csp.setAttribute('content', PREVIEW_CSP)
     head.insertBefore(csp, head.firstChild)
+    if (editableSegmentCount > 0) {
+      const editorStyle = document.createElement('style')
+      editorStyle.setAttribute('data-ajia-safe-editor', 'true')
+      editorStyle.appendChild(
+        document.createTextNode(
+          '[data-epub-segment-id]{border-radius:.2em;outline:1px dashed rgba(49,92,80,.38);outline-offset:2px;cursor:text}[data-epub-segment-id]:focus{outline:2px solid #315c50;background:rgba(219,233,226,.55)}',
+        ),
+      )
+      head.appendChild(editorStyle)
+    }
   }
   return {
     blockedResourceCount,
+    editableSegmentCount,
     html: new XMLSerializer().serializeToString(document),
   }
+}
+
+function wrapEditableTextNodes(
+  root: Element | null,
+  segments: readonly TextSegment[],
+): number {
+  if (root === null) return 0
+  let wrapped = 0
+  for (const segment of segments) {
+    const node = nodeAtPath(root, segment.nodePath)
+    if (
+      node?.nodeType !== 3 ||
+      node.nodeValue !== segment.decodedText ||
+      node.parentNode === null ||
+      node.ownerDocument === null
+    ) {
+      continue
+    }
+    const wrapper = node.ownerDocument.createElementNS(
+      'http://www.w3.org/1999/xhtml',
+      'span',
+    )
+    wrapper.setAttribute('contenteditable', 'plaintext-only')
+    wrapper.setAttribute('data-epub-segment-id', segment.id)
+    wrapper.setAttribute('role', 'textbox')
+    wrapper.setAttribute('spellcheck', 'false')
+    wrapper.appendChild(node.ownerDocument.createTextNode(segment.currentText))
+    node.parentNode.replaceChild(wrapper, node)
+    wrapped += 1
+  }
+  return wrapped
+}
+
+function nodeAtPath(root: Node, path: readonly number[]): Node | null {
+  let current: Node | null = root
+  for (const index of path) {
+    current = current.childNodes.item(index)
+    if (current === null) return null
+  }
+  return current
 }
 
 function collectElements(root: Element | null): Element[] {

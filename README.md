@@ -6,7 +6,7 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 
 ## 当前状态
 
-阶段 0 技术探针与阶段 1 只读浏览已经通过。项目现已完成 V0.1 阶段 2：源码编辑与可靠导出。
+阶段 0 技术探针、阶段 1 只读浏览和阶段 2 可靠导出已经通过。项目现已完成 V0.1 阶段 3：安全可视编辑。
 
 当前可以：
 
@@ -18,8 +18,9 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 6. 在 CodeMirror XML 模式中编辑 XHTML 源码，并在应用前进行原子 XML 验证；
 7. 查看 dirty entry、事务、安全、结构与兼容性问题；
 8. 生成新的 `-edited.epub`，并在下载前检查 mimetype、payload 字节与重新打开结果。
+9. 在隔离阅读视图中直接修改虚线标出的正文文字，所有修改仍通过最小源码补丁写入。
 
-打开、解析和导出在浏览器 Worker 中运行。当前不提供安全可视编辑、查找替换、目录编辑或应用 Undo/Redo；这些功能必须按后续阶段逐步实现。
+打开、解析和导出在浏览器 Worker 中运行。当前不提供查找替换、目录编辑或应用 Undo/Redo；这些功能必须按后续阶段逐步实现。
 
 完整需求见 [docs/product-requirements.md](docs/product-requirements.md)。
 

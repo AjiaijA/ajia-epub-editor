@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Phase 2 source editing and preserve-first export complete on 2026-08-08.
+Status: Phase 3 safe visual editing complete on 2026-08-08.
 
 ## Phase 1 read pipeline
 
@@ -71,6 +71,26 @@ is retained when new bytes are encoded.
 CodeMirror is an input surface only. Preview construction always receives the
 last validated session source, and the sanitized preview DOM is still never a
 save source. Encrypted chapters are excluded from source editing.
+
+### Safe visual-edit mapping
+
+`src/epub/text/safeTextPatch.ts` aligns XML-aware source text tokens with
+parsed DOM text-node paths. Only non-whitespace `body` text outside
+`script`/`style` becomes a revision-bound `TextSegment`. A mapping is rejected
+when tokenizer and parser text counts or decoded values disagree. Script, SVG,
+MathML, DTD, invalid XML, and stale mappings downgrade to preview/source mode.
+
+The editable preview wraps only verified text nodes with generated segment IDs.
+User input never supplies markup: the UI reads `textContent`, then
+`commitVisualText` resolves the ID against the current chapter revision,
+escapes XML text, replaces exactly one source slice, validates the complete
+XHTML, compares structural fingerprints, records one text transaction, and
+re-tokenizes. Every accepted edit increments the chapter revision and
+invalidates all previous IDs and offsets.
+
+The structural fingerprint retains element/namespace hierarchy, every
+attribute value, comments, processing instructions, CDATA, and text-node
+positions/count while excluding only text values.
 
 ### Export boundary
 
@@ -150,9 +170,9 @@ toolchain.
 
 ## Deferred architecture
 
-Phase 2 deliberately does not implement visual text editing, search/replace,
-navigation editing, or application Undo/Redo. Those require the later
-source-token transaction design and must not be implemented by serializing a
-preview DOM. The parser and exporter currently materialize complete bounded
-archives in Worker memory; streamed processing remains a performance and
+Phase 3 deliberately does not implement search/replace, navigation editing, or
+application Undo/Redo. Those later operations must reuse the source-token
+transaction boundary and must not serialize a preview DOM. The parser and
+exporter currently materialize complete bounded archives in Worker memory;
+streamed processing remains a performance and
 defense-in-depth improvement for later large-book work.

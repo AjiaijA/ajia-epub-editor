@@ -25,9 +25,8 @@ off the browser UI thread.
   clean-payload identity, correct mimetype header, and exported-book reopen.
 - `npm run fixture:export` produces the self-authored EPUB 2 CI artifact.
 - CI pins EPUBCheck 5.3.0 and its release ZIP SHA-256 before validating the
-  artifact. Java was unavailable locally and the shell could not fetch that
-  GitHub asset, so the official EPUBCheck execution must be confirmed by the
-  first CI run; this is the one unresolved verification item.
+  artifact. Private CI run `31252143276` passed the official EPUBCheck step on
+  2026-08-08.
 
 ## Library decisions
 
@@ -49,6 +48,5 @@ replacement for EPUBCheck; and reading-system smoke tests are still deferred.
 Source editing is intentionally expert-facing and does not yet provide product
 Undo/Redo.
 
-Recommendation: do not enter Phase 3 until the pinned EPUBCheck CI job passes
-the generated artifact. Once that external gate is green, the Phase 2
-architecture is suitable for the safe visual-editing work in Phase 3.
+Recommendation: the pinned EPUBCheck gate is green, so the Phase 2 architecture
+is suitable for the safe visual-editing work in Phase 3.

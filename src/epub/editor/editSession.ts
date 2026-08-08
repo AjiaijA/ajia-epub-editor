@@ -4,6 +4,11 @@ import type {
   EpubPublication,
 } from '../../models/publication.js'
 import { encodeUtf8Xml, parseXml } from '../parser/xml.js'
+import {
+  applySafeTextPatch,
+  findSafeVisualTextSegments,
+  type TextSegment,
+} from '../text/safeTextPatch.js'
 
 export class SourceValidationError extends Error {
   readonly chapterPath: string
@@ -19,6 +24,9 @@ export function createEditSession(
   publication: EpubPublication,
 ): EpubEditSession {
   return {
+    chapterRevisions: new Map(
+      publication.chapters.map((chapter) => [chapter.archivePath, 0]),
+    ),
     currentSources: new Map(
       publication.chapters.map((chapter) => [
         chapter.archivePath,
@@ -74,7 +82,13 @@ export function commitChapterSource(
     dirtyEntries.add(chapterPath)
   }
   const revision = session.revision + 1
+  const chapterRevisions = new Map(session.chapterRevisions)
+  chapterRevisions.set(
+    chapterPath,
+    (chapterRevisions.get(chapterPath) ?? 0) + 1,
+  )
   return {
+    chapterRevisions,
     currentSources,
     dirtyEntries,
     modifiedEntries,
@@ -88,6 +102,84 @@ export function commitChapterSource(
         chapterPath,
         revision,
         type: 'source-edit',
+      },
+    ],
+  }
+}
+
+export function getChapterTextSegments(
+  session: EpubEditSession,
+  chapterPath: string,
+): readonly TextSegment[] {
+  return findSafeVisualTextSegments(
+    getChapterSource(session, chapterPath),
+    chapterPath,
+    session.chapterRevisions.get(chapterPath) ?? 0,
+  )
+}
+
+export function commitVisualText(
+  session: EpubEditSession,
+  chapterPath: string,
+  segmentId: string,
+  replacement: string,
+): EpubEditSession {
+  const chapter = findChapter(session.publication, chapterPath)
+  if (chapter.sourceEditCapability === 'encrypted') {
+    throw new SourceValidationError(chapterPath, '受保护章节不能修改。')
+  }
+  const chapterRevision = session.chapterRevisions.get(chapterPath) ?? 0
+  const segment = findSafeVisualTextSegments(
+    getChapterSource(session, chapterPath),
+    chapterPath,
+    chapterRevision,
+  ).find((candidate) => candidate.id === segmentId)
+  if (segment === undefined) {
+    throw new SourceValidationError(
+      chapterPath,
+      '可视编辑位置已经失效，请刷新章节后重试。',
+    )
+  }
+  if (segment.decodedText === replacement) return session
+  const patched = applySafeTextPatch(
+    getChapterSource(session, chapterPath),
+    segment,
+    replacement,
+    chapterRevision,
+  )
+  const currentSources = new Map(session.currentSources)
+  const modifiedEntries = new Map(session.modifiedEntries)
+  const dirtyEntries = new Set(session.dirtyEntries)
+  const chapterRevisions = new Map(session.chapterRevisions)
+  currentSources.set(chapterPath, patched.source)
+  if (patched.source === chapter.originalSource) {
+    modifiedEntries.delete(chapterPath)
+    dirtyEntries.delete(chapterPath)
+  } else {
+    modifiedEntries.set(
+      chapterPath,
+      encodeUtf8Xml(patched.source, chapter.sourceEncoding),
+    )
+    dirtyEntries.add(chapterPath)
+  }
+  const revision = session.revision + 1
+  chapterRevisions.set(chapterPath, chapterRevision + 1)
+  return {
+    chapterRevisions,
+    currentSources,
+    dirtyEntries,
+    modifiedEntries,
+    publication: session.publication,
+    revision,
+    transactions: [
+      ...session.transactions,
+      {
+        afterText: replacement,
+        beforeText: segment.decodedText,
+        chapterPath,
+        revision,
+        segmentId,
+        type: 'text-edit',
       },
     ],
   }

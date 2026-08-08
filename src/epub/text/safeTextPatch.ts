@@ -6,10 +6,16 @@ import {
 } from '@xmldom/xmldom'
 
 export interface TextSegment {
+  readonly chapterPath: string
+  readonly currentText: string
   readonly decodedText: string
   readonly end: number
   readonly id: string
+  readonly nodePath: readonly number[]
   readonly rawSource: string
+  readonly sourceEnd: number
+  readonly sourceRevision: number
+  readonly sourceStart: number
   readonly start: number
 }
 
@@ -29,10 +35,19 @@ export interface SafeTextPatchResult {
 export function findEditableTextSegments(
   source: string,
 ): readonly TextSegment[] {
-  assertWellFormedXml(source)
+  return findChapterTextSegments(source, '', 0)
+}
+
+export function findChapterTextSegments(
+  source: string,
+  chapterPath: string,
+  sourceRevision: number,
+): readonly TextSegment[] {
+  const document = parseXml(source)
   const tokens = tokenizeXmlSource(source)
   const stack: string[] = []
-  const segments: TextSegment[] = []
+  const sourceSegments: Omit<TextSegment, 'currentText' | 'id' | 'nodePath'>[] =
+    []
 
   for (const token of tokens) {
     if (token.kind === 'markup') {
@@ -43,25 +58,63 @@ export function findEditableTextSegments(
     const bodyIndex = stack.lastIndexOf('body')
     const excluded = stack.some((name) => name === 'script' || name === 'style')
     if (bodyIndex !== -1 && !excluded && token.raw.length > 0) {
-      segments.push({
-        decodedText: decodeXmlText(token.raw),
+      const decodedText = decodeXmlText(token.raw)
+      if (decodedText.trim().length === 0) continue
+      sourceSegments.push({
+        chapterPath,
+        decodedText,
         end: token.end,
-        id: `text-${String(segments.length)}-${String(token.start)}-${String(token.end)}`,
         rawSource: token.raw,
+        sourceEnd: token.end,
+        sourceRevision,
+        sourceStart: token.start,
         start: token.start,
       })
     }
   }
+  const domTextNodes = collectEditableDomTextNodes(document)
+  if (
+    domTextNodes.length !== sourceSegments.length ||
+    domTextNodes.some(
+      (candidate, index) =>
+        candidate.text !== sourceSegments[index]?.decodedText,
+    )
+  ) {
+    throw new Error('XML tokenizer and parser text-node mappings disagree')
+  }
+  return sourceSegments.map((segment, index) => ({
+    ...segment,
+    currentText: segment.decodedText,
+    id: `segment:${chapterPath}:${String(sourceRevision)}:${String(segment.sourceStart)}:${String(segment.sourceEnd)}:${String(index)}`,
+    nodePath: domTextNodes[index]?.path ?? [],
+  }))
+}
 
-  return segments
+export function findSafeVisualTextSegments(
+  source: string,
+  chapterPath: string,
+  sourceRevision: number,
+): readonly TextSegment[] {
+  const document = parseXml(source)
+  const unsafe = collectElementNames(document.documentElement).find((name) =>
+    ['math', 'script', 'svg'].includes(name),
+  )
+  if (unsafe !== undefined) {
+    throw new Error(`Complex ${unsafe} content requires source mode`)
+  }
+  return findChapterTextSegments(source, chapterPath, sourceRevision)
 }
 
 export function applySafeTextPatch(
   source: string,
   segment: TextSegment,
   replacement: string,
+  expectedRevision = segment.sourceRevision,
 ): SafeTextPatchResult {
   assertWellFormedXml(source)
+  if (segment.sourceRevision !== expectedRevision) {
+    throw new Error('Text segment belongs to a stale source revision')
+  }
   if (source.slice(segment.start, segment.end) !== segment.rawSource) {
     throw new Error(
       'Text segment is stale or belongs to another source revision',
@@ -118,7 +171,8 @@ export function createStructuralFingerprint(source: string): string {
         break
       }
       case 3:
-        // Text values are the only part intentionally excluded from this fingerprint.
+        // Preserve text-node count and position while intentionally excluding values.
+        records.push(JSON.stringify(['text']))
         break
       case 4:
         records.push(JSON.stringify(['cdata', node.nodeValue ?? '']))
@@ -145,6 +199,44 @@ export function createStructuralFingerprint(source: string): string {
 
   visit(document)
   return records.join('\n')
+}
+
+function collectEditableDomTextNodes(
+  document: Document,
+): readonly { readonly path: readonly number[]; readonly text: string }[] {
+  const root = document.documentElement
+  if (root === null) return []
+  const output: { path: readonly number[]; text: string }[] = []
+  const visit = (
+    node: Node,
+    path: readonly number[],
+    insideBody: boolean,
+    excluded: boolean,
+  ): void => {
+    const element = node.nodeType === 1 ? (node as Element) : null
+    const name = (element?.localName ?? element?.tagName ?? '').toLowerCase()
+    const nextInsideBody = insideBody || name === 'body'
+    const nextExcluded = excluded || name === 'script' || name === 'style'
+    if (node.nodeType === 3 && nextInsideBody && !nextExcluded) {
+      const text = node.nodeValue ?? ''
+      if (text.trim().length > 0) output.push({ path, text })
+    }
+    Array.from(node.childNodes).forEach((child, index) => {
+      visit(child, [...path, index], nextInsideBody, nextExcluded)
+    })
+  }
+  visit(root, [], false, false)
+  return output
+}
+
+function collectElementNames(root: Element | null): readonly string[] {
+  if (root === null) return []
+  return [
+    (root.localName ?? root.tagName).toLowerCase(),
+    ...Array.from(root.childNodes).flatMap((child) =>
+      child.nodeType === 1 ? collectElementNames(child as Element) : [],
+    ),
+  ]
 }
 
 export function escapeXmlText(value: string): string {
