@@ -1,6 +1,6 @@
 # Compatibility
 
-Status: V0.1 release candidate verified locally on 2026-08-09. Calibre 9.11 and
+Status: V0.1 deployed and released publicly on 2026-08-09. Calibre 9.11 and
 Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 
 ## V0.1 application matrix
@@ -182,12 +182,12 @@ separate automated close/reopen capture was not produced.
 
 ## Online deployment evidence
 
-The reviewed RC3 is available at
+The reviewed V0.1 release is available at
 `https://ajia.site/tools/epub-editor/`. The route is an atomic symlink to the
-versioned directory `v0.1.0-rc.3-c03aef5`; the uploaded archive SHA-256 matches
+versioned directory `v0.1.0-f0e501e`; the uploaded archive SHA-256 matches
 the local reviewed artifact exactly:
-`ddd3c8bda5783a6c0b0031104a0fde5bc78ae3653c2338c16501794eafda6325`.
-The complete RC2 directory remains available for immediate rollback.
+`5c0d94aafd5dac212b8d4ca7a12377e5dcf69f98b801d9836cbee83a1e2c45b4`.
+The complete RC3 directory remains available for immediate rollback.
 
 The system-Chrome Playwright flow passed against the HTTPS URL. It opened the
 self-authored EPUB, renamed the NCX label, exercised Undo/Redo, replaced text
@@ -207,12 +207,21 @@ isolated `J`, switched views, changed a later “叔叔” token to “姨父”
 that `J` did not return and the raw English structure error never appeared. It
 observed four same-origin GET requests and no POST or off-origin request.
 
-The test route is not linked from the site's tools page, but it is reachable by
-anyone who knows the URL; it is not password protected. The current Nginx user
-cannot add response headers without an interactive administrator password, so
-the outer page's recommended CSP and related response headers remain a hosting
-hardening task. EPUB preview content is still isolated by the application's
-own CSP, and no upload or server-side book storage exists.
+The tools index links the editor as its eighth public tool. The stable route
+passed the English-default, Chinese-switch, full self-authored
+edit/export/reopen flow and the isolated real-book token-deletion regression
+after the production switch. The outer page's recommended CSP and related
+response headers remain a hosting-hardening task. EPUB preview content is still
+isolated by the application's own CSP, and no upload or server-side book
+storage exists.
+
+## Public GitHub release
+
+Repository `AjiaijA/ajia-epub-editor` is public under the MIT License. Tag
+`v0.1.0` points to reviewed commit `f0e501e`. GitHub Release “Ajia EPUB Editor
+V0.1” includes the deterministic static ZIP and SHA-256 sidecar. Main-branch CI
+run `31294217578` passed 61 tests, Linux Chromium, packaging, EPUBCheck 5.3.0,
+and the zero-vulnerability audit before publication.
 
 ## Thorium 3.4.0 smoke evidence
 
@@ -243,7 +252,7 @@ version and pass/fail result; no user-owned EPUB is required for this gate.
 
 ## Not yet claimed
 
-V0.1 RC2 does not yet claim full coverage for BOM package fixtures, ZIP64,
+V0.1 does not yet claim full coverage for BOM package fixtures, ZIP64,
 legacy CP437 filename encoding, all EPUB namespace variants, deeply malformed
 but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.

@@ -4,6 +4,11 @@ Date: 2026-08-09
 Branch: `agent/phase-5-v0.1-rc`
 Version: `0.1.0-rc.3`
 
+> Historical RC report. The international English-default/Chinese-optional
+> V0.1 release was published on 2026-08-09 from commit `f0e501e`, tag `v0.1.0`.
+> The public release archive SHA-256 is
+> `5c0d94aafd5dac212b8d4ca7a12377e5dcf69f98b801d9836cbee83a1e2c45b4`.
+
 ## Outcome
 
 Phase 5 produces a private, testable V0.1 release candidate. Whole-book search
