@@ -71,9 +71,14 @@ English exception.
   Chromium, deterministic packaging, pinned EPUBCheck 5.3.0, and the
   zero-vulnerability audit.
 - The stable online path now points atomically to
-  `v0.1.0-rc.2-4ac607e`. Both the self-authored full flow and a read-only
+  `v0.1.0-rc.3-c03aef5`. Both the self-authored full flow and a read-only
   `龙之雷.epub` online preview passed after the switch; the real-book run made
   no POST or off-origin request.
+- The RC3 stable-route browser regression deleted the real-book `J`, switched
+  views, applied a later edit, and confirmed the deletion persisted with no raw
+  English structure error. The deployment artifact SHA-256 is
+  `ddd3c8bda5783a6c0b0031104a0fde5bc78ae3653c2338c16501794eafda6325`;
+  the RC2 version directory remains the immediate rollback target.
 
 ## Reader compatibility status
 

@@ -68,11 +68,12 @@ analytics, crash reporting, CDN script injection, or third-party fonts.
 On 2026-08-08 the user authorized an online test deployment at
 `https://ajia.site/tools/epub-editor/`. On 2026-08-09 the stable route was
 atomically switched to
-`/var/www/html/tools/epub-editor-releases/v0.1.0-rc.2-4ac607e` after CI and
-staged-URL verification. The RC2 uploaded archive and reviewed local artifact
+`/var/www/html/tools/epub-editor-releases/v0.1.0-rc.3-c03aef5` after staged and
+stable-URL verification. The RC3 uploaded archive and reviewed local artifact
 both have SHA-256
-`627cec14dbe9eb827b16d0688da45ed9234f019a904e96b1f208d7f1697aabe9`.
-The previous `v0.1.0-rc.1-27784f1` directory is retained as the rollback target.
+`ddd3c8bda5783a6c0b0031104a0fde5bc78ae3653c2338c16501794eafda6325`.
+The previous `v0.1.0-rc.2-4ac607e` directory is retained as the immediate
+rollback target; RC1 is also retained.
 
 The route is not linked from the tools index and has no password protection.
 The reusable Nginx location template is in

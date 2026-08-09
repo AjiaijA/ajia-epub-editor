@@ -1,8 +1,7 @@
 # Compatibility
 
-Status: V0.1 RC3 candidate verified locally on 2026-08-09; RC2 remains deployed
-until the atomic RC3 switch. Calibre 9.11 and Thorium 3.4.0 passed, and Apple
-Books opens the RC1 edited smoke fixture.
+Status: V0.1 RC3 deployed and verified online on 2026-08-09. Calibre 9.11 and
+Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 
 ## V0.1 RC3 application matrix
 
@@ -180,12 +179,12 @@ separate automated close/reopen capture was not produced.
 
 ## Online deployment evidence
 
-The reviewed RC2 is available at
+The reviewed RC3 is available at
 `https://ajia.site/tools/epub-editor/`. The route is an atomic symlink to the
-versioned directory `v0.1.0-rc.2-4ac607e`; the uploaded archive SHA-256 matches
+versioned directory `v0.1.0-rc.3-c03aef5`; the uploaded archive SHA-256 matches
 the local reviewed artifact exactly:
-`627cec14dbe9eb827b16d0688da45ed9234f019a904e96b1f208d7f1697aabe9`.
-The complete RC1 directory remains available for rollback.
+`ddd3c8bda5783a6c0b0031104a0fde5bc78ae3653c2338c16501794eafda6325`.
+The complete RC2 directory remains available for immediate rollback.
 
 The system-Chrome Playwright flow passed against the HTTPS URL. It opened the
 self-authored EPUB, renamed the NCX label, exercised Undo/Redo, replaced text
@@ -198,6 +197,12 @@ After the RC2 switch, the full self-authored edit/export/reopen flow passed
 again. A separate online Chrome run opened the user's `龙之雷.epub`, displayed
 chapter 006 with zero invalid-XML warnings, and observed only four static GET
 requests to `https://ajia.site`; there were no POST or off-origin requests.
+
+After the RC3 switch, the stable HTTPS route passed the complete self-authored
+Playwright flow. A second online Chrome run opened `龙之雷.epub`, deleted the
+isolated `J`, switched views, changed a later “叔叔” token to “姨父”, and proved
+that `J` did not return and the raw English structure error never appeared. It
+observed four same-origin GET requests and no POST or off-origin request.
 
 The test route is not linked from the site's tools page, but it is reachable by
 anyone who knows the URL; it is not password protected. The current Nginx user
