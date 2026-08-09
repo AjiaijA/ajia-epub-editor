@@ -1,9 +1,9 @@
 # Compatibility
 
-Status: V0.1 deployed and released publicly on 2026-08-09. Calibre 9.11 and
+Status: V0.1.1 deployed and released publicly on 2026-08-09. Calibre 9.11 and
 Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 
-V0.1.1 is a local maintenance candidate pending user review. Its regression
+V0.1.1 is a focused maintenance release. Its regression
 suite disables Safe edit for OPF fixed-layout publications while retaining
 Preview and XHTML Source, clarifies that a nonconforming input `mimetype`
 header is warned and repaired on export rather than forcing read-only mode,
@@ -16,8 +16,8 @@ vulnerabilities. Two independent package runs produced the same static archive
 SHA-256:
 `a4da245a494376b37395d18bdad7c920c90c05098de5d3a10d87fd35c2355e1f`.
 EPUBCheck was not rerun locally because this Windows environment has no Java
-runtime; the pinned EPUBCheck 5.3.0 gate remains mandatory in GitHub CI before
-publication.
+runtime. GitHub CI supplied Java 17 and passed the pinned EPUBCheck 5.3.0 gate
+before publication.
 
 ## V0.1 application matrix
 
@@ -198,12 +198,12 @@ separate automated close/reopen capture was not produced.
 
 ## Online deployment evidence
 
-The reviewed V0.1 release is available at
+The reviewed V0.1.1 release is available at
 `https://ajia.site/tools/epub-editor/`. The route is an atomic symlink to the
-versioned directory `v0.1.0-f0e501e`; the uploaded archive SHA-256 matches
+versioned directory `v0.1.1-a7bfe7d`; the uploaded archive SHA-256 matches
 the local reviewed artifact exactly:
-`5c0d94aafd5dac212b8d4ca7a12377e5dcf69f98b801d9836cbee83a1e2c45b4`.
-The complete RC3 directory remains available for immediate rollback.
+`a4da245a494376b37395d18bdad7c920c90c05098de5d3a10d87fd35c2355e1f`.
+The complete V0.1.0 directory remains available for immediate rollback.
 
 The system-Chrome Playwright flow passed against the HTTPS URL. It opened the
 self-authored EPUB, renamed the NCX label, exercised Undo/Redo, replaced text
@@ -238,6 +238,12 @@ Repository `AjiaijA/ajia-epub-editor` is public under the MIT License. Tag
 V0.1” includes the deterministic static ZIP and SHA-256 sidecar. Main-branch CI
 run `31294217578` passed 61 tests, Linux Chromium, packaging, EPUBCheck 5.3.0,
 and the zero-vulnerability audit before publication.
+
+Tag `v0.1.1` points to the reviewed and merged commit `a7bfe7d`. GitHub Release
+“Ajia EPUB Editor V0.1.1” includes the deterministic static ZIP and SHA-256
+sidecar. PR CI run `31301129589` and main-branch CI run `31301229463` both
+passed 66 tests, Linux Chromium, packaging, EPUBCheck 5.3.0, and the
+zero-vulnerability audit before publication.
 
 ## Thorium 3.4.0 smoke evidence
 

@@ -1,4 +1,4 @@
-# Ajia EPUB Editor V0.1 Deployment
+# Ajia EPUB Editor V0.1.1 Deployment
 
 This document describes the static production deployment and rollback process.
 EPUB files are processed in the browser; the site requires no application
@@ -65,11 +65,11 @@ analytics, crash reporting, CDN script injection, or third-party fonts.
 The production application is available at
 `https://ajia.site/tools/epub-editor/`. On 2026-08-09 the stable route was
 atomically switched to
-`/var/www/html/tools/epub-editor-releases/v0.1.0-f0e501e` after CI, staged-URL,
+`/var/www/html/tools/epub-editor-releases/v0.1.1-a7bfe7d` after CI, staged-URL,
 and stable-URL verification. The uploaded archive and GitHub Release asset have
 SHA-256
-`5c0d94aafd5dac212b8d4ca7a12377e5dcf69f98b801d9836cbee83a1e2c45b4`.
-The previous `v0.1.0-rc.3-c03aef5` directory is retained as the immediate
+`a4da245a494376b37395d18bdad7c920c90c05098de5d3a10d87fd35c2355e1f`.
+The previous stable `v0.1.0-f0e501e` directory is retained as the immediate
 rollback target; earlier RC directories are also retained.
 
 The production route is linked from the public tools index.
