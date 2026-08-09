@@ -7,6 +7,9 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 ## Current milestone
 
 Phases 0 through 4 are complete. The user authorized Phase 5 on 2026-08-08.
+The user later authorized an unlinked online test deployment at the product
+requirements URL and Thorium installation/testing. Calibre and Thorium are
+recorded as passed; Apple Books remains a human-assisted release gate.
 Work only on Phase 5 until the release candidate is reviewed:
 
 1. Finish plain-language errors, progress/cancellation, accessibility, and narrow-screen behavior.

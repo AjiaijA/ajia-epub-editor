@@ -31,10 +31,12 @@ repeat the smoke checklist in `docs/compatibility.md`. Opening `index.html`
 directly with `file://` is unsupported because module Workers require an HTTP
 origin.
 
-## Private ajia.site preview
+## Unlinked ajia.site preview
 
-Use a non-public, access-controlled path such as `/epub-editor-rc/`. Extract
-the RC into a new versioned directory; do not overwrite the previous version.
+Prefer an access-controlled path. If server access control is unavailable, an
+unlinked path is useful for testing but must not be described as private:
+anyone who knows the URL can reach it. Extract the RC into a new versioned
+directory; do not overwrite the previous version.
 For example, the hosting layout can be:
 
 ```text
@@ -61,6 +63,38 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 Do not add access logs containing query strings or filenames, upload handlers,
 analytics, crash reporting, CDN script injection, or third-party fonts.
 
+## Current authorized test deployment
+
+On 2026-08-08 the user authorized an online test deployment at
+`https://ajia.site/tools/epub-editor/`. It points to the versioned directory
+`/var/www/html/tools/epub-editor-releases/v0.1.0-rc.1-27784f1`. The uploaded
+archive and reviewed local artifact both have SHA-256
+`2a48d2778430041b86604d4c860443992babdc6d4a9cf2830a4ffb1a303e50e5`.
+
+The route is not linked from the tools index and has no password protection.
+The reusable Nginx location template is in
+`deploy/nginx-epub-editor.conf`, but installing it requires an interactive
+administrator password and remains pending. Do not claim its response headers
+are active until an HTTPS header check confirms them.
+
+The two self-authored Apple Books handoff fixtures are served from the unlinked
+`/tools/epub-editor-test-fixtures/` directory. They contain no user book data.
+Their SHA-256 values are:
+
+- `epub2-reader-smoke.epub`:
+  `1190a3f53c0d66cb11bbc157c4a30e59b63be5ab6097975f872c999eabec2884`
+- `epub2-reader-smoke-edited.epub`:
+  `54792ebc08f76771a132de155a2100a0762c1ed7ea975ad2a8cb001b018c65e5`
+
+The Playwright configuration accepts `PLAYWRIGHT_BASE_URL` for repeatable
+online acceptance. On Windows PowerShell:
+
+```text
+$env:PLAYWRIGHT_USE_SYSTEM_CHROME='1'
+$env:PLAYWRIGHT_BASE_URL='https://ajia.site/tools/epub-editor/'
+npx playwright test tests/e2e/release.spec.ts
+```
+
 ## Rollback
 
 Keep the previous versioned directory until review is complete. To roll back,
@@ -74,5 +108,5 @@ requires migration because the application stores no server-side book state.
 Promotion from RC to public V0.1 requires explicit user approval, green private
 CI/EPUBCheck, successful Apple Books, Calibre, and Thorium (or approved third
 reader) smoke tests, and a final check that the deployed files match the
-reviewed SHA-256. Public DNS/path switching is intentionally outside the RC
-generation task.
+reviewed SHA-256. Calibre and Thorium are recorded as passed; Apple Books
+remains pending. The online test route is not itself a public release.

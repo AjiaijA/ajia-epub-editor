@@ -11,7 +11,8 @@ test('V0.1 RC edits, searches, undoes, exports, and stays local', async ({
 }) => {
   const requests: string[] = []
   page.on('request', (request) => requests.push(request.url()))
-  await page.goto('/')
+  await page.goto('./')
+  const appOrigin = new URL(page.url()).origin
   await expect(page.getByText('V0.1 RC1 · 本地测试版本')).toBeVisible()
 
   await page
@@ -60,7 +61,7 @@ test('V0.1 RC edits, searches, undoes, exports, and stays local', async ({
   expect(
     requests.every((url) => {
       const parsed = new URL(url)
-      return parsed.origin === 'http://127.0.0.1:4173'
+      return parsed.origin === appOrigin
     }),
   ).toBe(true)
 

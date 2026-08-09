@@ -214,3 +214,10 @@ paths, emits a versioned archive, and writes a SHA-256 sidecar. Runtime and
 deployment remain separate: the package can be served below a versioned static
 directory, tested, and rolled back without modifying source EPUB files or
 server-side state.
+
+The authorized online RC follows this layout at
+`https://ajia.site/tools/epub-editor/`: the stable route is a symlink to an
+immutable version directory whose archive hash matches the reviewed local
+artifact. `PLAYWRIGHT_BASE_URL` allows the same preservation-oriented browser
+flow to run against either localhost or that online route without adding a
+backend or upload boundary.

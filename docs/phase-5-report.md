@@ -14,9 +14,9 @@ item is unique; focus indicators and 390 px layout behavior were strengthened.
 
 The release toolchain adds a real Chromium end-to-end test, a versioned static
 ZIP, fixed entry timestamps, SHA-256 sidecar, reader-smoke EPUB, private static
-deployment guidance, and explicit rollback instructions. No backend, upload,
-telemetry, account, AI, public deployment, PR, merge, or public release was
-added.
+deployment guidance, and explicit rollback instructions. A later user-approved,
+unlinked online test deployment was added at `ajia.site`; no backend, upload,
+telemetry, account, AI, public release, PR, or merge was added.
 
 ## Verification evidence
 
@@ -40,6 +40,9 @@ added.
 - Private CI run `31257502823` passed the committed candidate in 1m43s,
   including Linux Chromium E2E, release packaging, pinned EPUBCheck 5.3.0, and
   the zero-vulnerability audit.
+- The same Playwright flow passed against
+  `https://ajia.site/tools/epub-editor/`, including export/reopen and a check
+  that every observed request remained on the application origin.
 
 ## Reader compatibility status
 
@@ -48,15 +51,20 @@ host. Calibre 9.11 is installed: its viewer opened the edited fixture, metadata
 parsing passed, and its conversion engine extracted the edited Chinese body
 text. The user visually confirmed the expected NCX label and edited sentence on
 2026-08-08, so the Calibre gate is recorded as passed; no separate automated
-close/reopen capture was produced. Thorium is not installed. The remaining
-Apple Books and Thorium manual navigation, edited-text, and reopen checks are
-promotion gates; the self-authored `epub2-reader-smoke.epub` and a fixed
-`epub2-reader-smoke-edited.epub` are provided for those tests. This RC is
-testable but is not represented as the final public V0.1 release.
+close/reopen capture was produced. Thorium Reader 3.4.0 opened the edited
+fixture in a responsive window, and the user completed the reader check and
+reported success on 2026-08-08. Apple Books is now the only remaining native
+reader promotion gate; the self-authored `epub2-reader-smoke.epub` and a fixed
+`epub2-reader-smoke-edited.epub` are provided for that test. This RC is testable
+online but is not represented as the final public V0.1 release.
 
 ## Residual risks
 
-- Native Apple Books and Thorium results are pending.
+- Native Apple Books results are pending and require the user's macOS/iOS
+  device.
+- The unlinked online test route is reachable by anyone who knows its URL. The
+  recommended outer-page Nginx response headers require an administrator
+  password and are not yet active.
 - Large archives remain bounded but fully materialized in Worker memory rather
   than streamed.
 - The main JavaScript bundle triggers Vite's 500 kB advisory; it is functional,
@@ -66,6 +74,5 @@ testable but is not represented as the final public V0.1 release.
 
 ## Recommendation
 
-Continue private RC1 testing in Apple Books and Thorium. Promote to V0.1 only
-after those results are recorded and the user explicitly approves deployment
-or release publication.
+Complete the Apple Books check with the user. Promote to V0.1 only after that
+result is recorded and the user explicitly approves release publication.

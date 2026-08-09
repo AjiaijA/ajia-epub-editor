@@ -1,7 +1,7 @@
 # Compatibility
 
-Status: V0.1 RC1 automated, Chromium evidence recorded, and Calibre 9.11
-accepted on 2026-08-08; Apple Books and Thorium release gates remain pending.
+Status: V0.1 RC1 automated, deployed for online testing, and accepted in
+Calibre 9.11 and Thorium 3.4.0 on 2026-08-08; Apple Books remains pending.
 
 ## V0.1 RC1 application matrix
 
@@ -12,9 +12,10 @@ accepted on 2026-08-08; Apple Books and Thorium release gates remain pending.
 | Runtime network boundary | Every observed request remains on the local test origin   | Pass                 |
 | Search responsiveness    | Dedicated cancellable Worker with fallback unit tests     | Pass                 |
 | Release package          | Versioned static ZIP plus SHA-256 sidecar                 | Pass                 |
+| ajia.site online flow    | Open/edit/export/reopen; every request stays on site      | Pass                 |
 | Apple Books              | Requires macOS hardware/manual import                     | Pending release gate |
 | Calibre 9.11 Viewer      | Viewer load plus user-confirmed NCX label and edited body | Pass                 |
-| Thorium Reader           | Not installed on the current Windows test host            | Pending release gate |
+| Thorium Reader 3.4.0     | Edited fixture opened; user confirmed reader smoke test   | Pass                 |
 
 ## Phase 4 search, history, and TOC matrix
 
@@ -143,6 +144,50 @@ the edited sentence on 2026-08-08. Together with the successful viewer load and
 Calibre parser evidence, the Calibre reader gate is recorded as a pass. A
 separate automated close/reopen capture was not produced.
 
+## Online deployment evidence
+
+The reviewed RC is available at
+`https://ajia.site/tools/epub-editor/`. The route is an atomic symlink to the
+versioned directory `v0.1.0-rc.1-27784f1`; the uploaded archive SHA-256 matches
+the local reviewed artifact exactly:
+`2a48d2778430041b86604d4c860443992babdc6d4a9cf2830a4ffb1a303e50e5`.
+
+The system-Chrome Playwright flow passed against the HTTPS URL. It opened the
+self-authored EPUB, renamed the NCX label, exercised Undo/Redo, replaced text
+containing XML-special characters, exported and reparsed the result, checked
+the EPUB mimetype header, and verified that every observed request stayed on
+`https://ajia.site`. The in-app browser independently loaded the application
+and displayed the fixture's directory and isolated chapter preview.
+
+The test route is not linked from the site's tools page, but it is reachable by
+anyone who knows the URL; it is not password protected. The current Nginx user
+cannot add response headers without an interactive administrator password, so
+the outer page's recommended CSP and related response headers remain a hosting
+hardening task. EPUB preview content is still isolated by the application's
+own CSP, and no upload or server-side book storage exists.
+
+## Thorium 3.4.0 smoke evidence
+
+Windows package inventory identifies `EDRLab.Thorium` 3.4.0 at
+`C:\Program Files\Thorium`. The edited self-authored fixture opened in a
+responsive window titled “Thorium - 阶段一 EPUB 2 测试书”. The user completed the
+reader check and reported the Thorium test successful on 2026-08-08, so the
+Thorium gate is recorded as a pass.
+
+## Apple Books human-assisted check
+
+The self-authored fixtures are available from unlinked HTTPS URLs for transfer
+to the user's Apple device:
+
+- `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke.epub`
+- `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke-edited.epub`
+
+Open the edited fixture in Apple Books and confirm the title “阶段一 EPUB 2
+测试书”, TOC label “RC 阅读器测试目录”, and sentence “这是自建的 EPUB 2 RC
+阅读器测试文字。”. Close the book, reopen it from the Apple Books library, and
+confirm the same TOC destination and sentence. Record the Apple device/OS
+version and pass/fail result; no user-owned EPUB is required for this gate.
+
 ## Not yet claimed
 
 V0.1 RC1 does not yet claim full coverage for BOM package fixtures, ZIP64,
@@ -151,8 +196,8 @@ but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
-Apple Books and Thorium Reader smoke tests remain release requirements. V0.1
-RC1 also does not certify fixed-layout fidelity, SVG/MathML
+Apple Books remains the final native-reader smoke requirement. V0.1 RC1 also
+does not certify fixed-layout fidelity, SVG/MathML
 visual editing, large-book search responsiveness, or ambiguous/structurally
 complex navigation label rewrites. Those cases intentionally remain read-only
 or warning paths.

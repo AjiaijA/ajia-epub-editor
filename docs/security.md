@@ -142,6 +142,16 @@ worker, analytics SDK, or remote font/script. Deployment guidance requires a
 restrictive page CSP and a versioned, reversible directory switch. The RC ZIP
 has a SHA-256 sidecar for transport verification.
 
+The authorized `ajia.site` test deployment uses the versioned directory switch
+and the reviewed archive hash. It is unlinked but not access controlled. The
+host's existing Nginx configuration does not yet emit the recommended outer
+page CSP or related response headers because installing the prepared
+`deploy/nginx-epub-editor.conf` requires an interactive administrator password.
+This is a recorded hosting-hardening gap, not a claim that the policy is active.
+The stricter CSP applied inside every untrusted EPUB preview iframe remains
+active, and online acceptance confirms that the editor makes no off-origin
+runtime requests.
+
 EPUBCheck is a CI/build-time tool only. The browser never uploads a user's book
 for conformance checking. CI downloads the pinned 5.3.0 distribution and first
 verifies its published release asset against the recorded SHA-256 digest.
