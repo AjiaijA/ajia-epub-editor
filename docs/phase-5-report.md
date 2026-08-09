@@ -56,6 +56,13 @@ rejects internal subsets and custom entity declarations.
 - Post-deployment private CI run `31288682223` passed in 1m36s, repeating the
   Linux Chromium, RC packaging, pinned EPUBCheck 5.3.0, and zero-vulnerability
   gates after the reusable online-test configuration was committed.
+- RC2 private CI run `31289984311` passed in 1m45s with 55 tests, Linux
+  Chromium, deterministic packaging, pinned EPUBCheck 5.3.0, and the
+  zero-vulnerability audit.
+- The stable online path now points atomically to
+  `v0.1.0-rc.2-4ac607e`. Both the self-authored full flow and a read-only
+  `龙之雷.epub` online preview passed after the switch; the real-book run made
+  no POST or off-origin request.
 
 ## Reader compatibility status
 

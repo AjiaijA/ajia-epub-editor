@@ -66,10 +66,13 @@ analytics, crash reporting, CDN script injection, or third-party fonts.
 ## Current authorized test deployment
 
 On 2026-08-08 the user authorized an online test deployment at
-`https://ajia.site/tools/epub-editor/`. It points to the versioned directory
-`/var/www/html/tools/epub-editor-releases/v0.1.0-rc.1-27784f1`. The uploaded
-archive and reviewed local artifact both have SHA-256
-`2a48d2778430041b86604d4c860443992babdc6d4a9cf2830a4ffb1a303e50e5`.
+`https://ajia.site/tools/epub-editor/`. On 2026-08-09 the stable route was
+atomically switched to
+`/var/www/html/tools/epub-editor-releases/v0.1.0-rc.2-4ac607e` after CI and
+staged-URL verification. The RC2 uploaded archive and reviewed local artifact
+both have SHA-256
+`627cec14dbe9eb827b16d0688da45ed9234f019a904e96b1f208d7f1697aabe9`.
+The previous `v0.1.0-rc.1-27784f1` directory is retained as the rollback target.
 
 The route is not linked from the tools index and has no password protection.
 The reusable Nginx location template is in
@@ -77,14 +80,17 @@ The reusable Nginx location template is in
 administrator password and remains pending. Do not claim its response headers
 are active until an HTTPS header check confirms them.
 
-The two self-authored Apple Books handoff fixtures are served from the unlinked
+The self-authored Apple Books handoff fixtures are served from the unlinked
 `/tools/epub-editor-test-fixtures/` directory. They contain no user book data.
-Their SHA-256 values are:
+The current RC2 fixture SHA-256 values are:
 
-- `epub2-reader-smoke.epub`:
-  `1190a3f53c0d66cb11bbc157c4a30e59b63be5ab6097975f872c999eabec2884`
-- `epub2-reader-smoke-edited.epub`:
-  `54792ebc08f76771a132de155a2100a0762c1ed7ea975ad2a8cb001b018c65e5`
+- `epub2-reader-smoke-rc2.epub`:
+  `761bbbd452f6acaaf851dae80182cdc9dd479ba037ff525e1a37d5e18deeff3b`
+- `epub2-reader-smoke-rc2-edited.epub`:
+  `b8708e1da39a8234d723388180392eec0724d73891896fbaffbb0289772b49ad`
+
+The earlier unversioned RC1 fixture URLs remain available and were not
+overwritten.
 
 The Playwright configuration accepts `PLAYWRIGHT_BASE_URL` for repeatable
 online acceptance. On Windows PowerShell:

@@ -1,8 +1,7 @@
 # Compatibility
 
-Status: V0.1 RC2 compatibility fix under verification on 2026-08-09; RC1 was
-accepted in Calibre 9.11 and Thorium 3.4.0, and Apple Books opens the edited
-smoke fixture.
+Status: V0.1 RC2 deployed and verified online on 2026-08-09; Calibre 9.11 and
+Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 
 ## V0.1 RC2 application matrix
 
@@ -151,6 +150,10 @@ configurable online Playwright target and deployment evidence were committed.
 It repeated the Linux Chromium, packaging, EPUBCheck 5.3.0, and dependency
 audit gates successfully.
 
+RC2 private CI run `31289984311` passed in 1m45s, including 55 tests, Linux
+Chromium, deterministic RC2 packaging, EPUBCheck 5.3.0, and the
+zero-vulnerability audit.
+
 ## Calibre 9.11 smoke evidence
 
 The installed `C:\Program Files\Calibre2\ebook-viewer.exe` opened
@@ -167,11 +170,12 @@ separate automated close/reopen capture was not produced.
 
 ## Online deployment evidence
 
-The reviewed RC is available at
+The reviewed RC2 is available at
 `https://ajia.site/tools/epub-editor/`. The route is an atomic symlink to the
-versioned directory `v0.1.0-rc.1-27784f1`; the uploaded archive SHA-256 matches
+versioned directory `v0.1.0-rc.2-4ac607e`; the uploaded archive SHA-256 matches
 the local reviewed artifact exactly:
-`2a48d2778430041b86604d4c860443992babdc6d4a9cf2830a4ffb1a303e50e5`.
+`627cec14dbe9eb827b16d0688da45ed9234f019a904e96b1f208d7f1697aabe9`.
+The complete RC1 directory remains available for rollback.
 
 The system-Chrome Playwright flow passed against the HTTPS URL. It opened the
 self-authored EPUB, renamed the NCX label, exercised Undo/Redo, replaced text
@@ -179,6 +183,11 @@ containing XML-special characters, exported and reparsed the result, checked
 the EPUB mimetype header, and verified that every observed request stayed on
 `https://ajia.site`. The in-app browser independently loaded the application
 and displayed the fixture's directory and isolated chapter preview.
+
+After the RC2 switch, the full self-authored edit/export/reopen flow passed
+again. A separate online Chrome run opened the user's `龙之雷.epub`, displayed
+chapter 006 with zero invalid-XML warnings, and observed only four static GET
+requests to `https://ajia.site`; there were no POST or off-origin requests.
 
 The test route is not linked from the site's tools page, but it is reachable by
 anyone who knows the URL; it is not password protected. The current Nginx user
@@ -200,12 +209,13 @@ Thorium gate is recorded as a pass.
 The self-authored fixtures are available from unlinked HTTPS URLs for transfer
 to the user's Apple device:
 
-- `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke.epub`
-- `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke-edited.epub`
+- `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke-rc2.epub`
+- `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke-rc2-edited.epub`
 
-On 2026-08-09 the user confirmed that Apple Books opens the edited fixture.
-The title/TOC/body and close/reopen observations below have not yet been
-reported, so this is recorded as a partial pass rather than a completed gate.
+On 2026-08-09 the user confirmed that Apple Books opens the earlier RC1 edited
+fixture. The title/TOC/body and close/reopen observations, and the new RC2
+fixture result, have not yet been reported, so this is recorded as a partial
+pass rather than a completed gate.
 
 Open the edited fixture in Apple Books and confirm the title “阶段一 EPUB 2
 测试书”, TOC label “RC 阅读器测试目录”, and sentence “这是自建的 EPUB 2 RC
