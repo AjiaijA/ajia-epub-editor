@@ -38,10 +38,10 @@ export async function openPublicationAsync(
       signal?.removeEventListener('abort', abort)
       worker.terminate()
       reject(
-        new EpubOpenError('后台打开任务失败。', [
+        new EpubOpenError('The background open task failed.', [
           {
             code: 'open.worker-crashed',
-            message: '浏览器后台任务异常终止。',
+            message: 'The browser worker stopped unexpectedly.',
             severity: 'error',
           },
         ]),
@@ -63,7 +63,7 @@ function throwIfAborted(signal?: AbortSignal): void {
 }
 
 function abortError(): Error {
-  const error = new Error('打开任务已取消。')
+  const error = new Error('The open task was cancelled.')
   error.name = 'AbortError'
   return error
 }

@@ -1,6 +1,7 @@
 # Security
 
-Status: V0.1 RC2 archive intake, isolated editing, background search, reversible transactions, and release controls implemented.
+Status: V0.1 archive intake, isolated editing, bilingual interface, background
+search, reversible transactions, and release controls implemented.
 
 ## Archive gate
 
@@ -148,6 +149,11 @@ invariance tests are maintained independently.
 
 No book content may be sent to analytics, error reporting, AI services, or
 application servers in any phase.
+
+The interface locale preference (`en` or `zh`) is stored in browser
+`localStorage`. It contains no book identifier, filename, title, content, or
+edit data. English is the default when no preference exists or storage is
+unavailable.
 
 Whole-book search executes in a dedicated Worker and can be cancelled by
 terminating that Worker. Search messages use browser structured cloning only;

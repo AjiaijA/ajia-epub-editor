@@ -1,15 +1,62 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { App } from '../../src/app/App.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
 describe('V0.1 RC editing app', () => {
+  afterEach(() => {
+    cleanup()
+  })
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  it('defaults to English and offers persistent Chinese as an option', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    expect(
+      screen.getByRole('heading', { name: 'Open a local EPUB' }),
+    ).toBeVisible()
+    expect(
+      screen.getByText(
+        'Your file is processed only in this browser and is never uploaded.',
+      ),
+    ).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute(
+      'href',
+      '/',
+    )
+    expect(screen.getByRole('link', { name: 'Blog' })).toHaveAttribute(
+      'href',
+      '/blog/',
+    )
+    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute(
+      'href',
+      'https://about.ajia.site/en/',
+    )
+
+    await user.click(screen.getByRole('button', { name: '中文' }))
+    expect(
+      screen.getByRole('heading', { name: '打开一本本地 EPUB' }),
+    ).toBeVisible()
+    expect(window.localStorage.getItem('ajia-epub-editor-locale')).toBe('zh')
+    expect(document.documentElement.lang).toBe('zh-CN')
+  })
+
   it('opens a local EPUB and exposes search, history, TOC, editing, and export controls', async () => {
+    window.localStorage.setItem('ajia-epub-editor-locale', 'zh')
     const bytes = await buildFixtureArchive('epub3-nav')
     const fileBuffer = bytes.slice().buffer
     const file = new File([fileBuffer], '阶段一.epub', {
@@ -35,11 +82,11 @@ describe('V0.1 RC editing app', () => {
     ).toBeVisible()
     expect(screen.getByRole('tree')).toBeVisible()
     expect(screen.getByRole('button', { name: /第二章/u })).toBeEnabled()
-    expect(screen.getByTitle('第一章：本地阅读只读预览')).toHaveAttribute(
+    expect(screen.getByTitle('第一章：本地阅读 只读预览')).toHaveAttribute(
       'sandbox',
       '',
     )
-    expect(screen.getByText(/尚无修改 · V0.1 RC3/u)).toBeVisible()
+    expect(screen.getByText(/尚无修改 · V0.1/u)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '查找替换' })).toBeEnabled()
@@ -59,10 +106,10 @@ describe('V0.1 RC editing app', () => {
 
     await user.click(screen.getByRole('button', { name: /第二章/u }))
     await waitFor(() =>
-      expect(screen.getByTitle('第二章只读预览')).toBeVisible(),
+      expect(screen.getByTitle('第二章 只读预览')).toBeVisible(),
     )
     await user.click(screen.getByRole('tab', { name: '安全编辑' }))
-    expect(screen.getByTitle('第二章安全文字编辑')).toHaveAttribute(
+    expect(screen.getByTitle('第二章 安全文字编辑')).toHaveAttribute(
       'sandbox',
       'allow-same-origin',
     )

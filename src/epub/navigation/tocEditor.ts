@@ -66,9 +66,11 @@ export function renameNavigationLabel(
   item: NavigationItem,
   newLabel: string,
 ): TocRenameResult {
-  if (newLabel.trim() === '') throw new Error('目录名称不能为空。')
+  if (newLabel.trim() === '') throw new Error('The TOC label cannot be empty.')
   if (item.sources[0]?.kind === 'spine') {
-    throw new Error('spine fallback 目录没有可安全写回的 NAV/NCX。')
+    throw new Error(
+      'A spine fallback has no NAV or NCX label to update safely.',
+    )
   }
   const issues: EpubIssue[] = []
   const sourceRefs = [...item.sources]
@@ -86,7 +88,8 @@ export function renameNavigationLabel(
   } else if (currentNavigation.alternateItems.length > 0) {
     issues.push({
       code: 'toc.sync-ambiguous',
-      message: 'NAV 与 NCX 无法按唯一目标可靠同步，只修改选定目录来源。',
+      message:
+        'NAV and NCX could not be synchronized by a unique target; only the selected source was changed.',
       severity: 'warning',
     })
   }
@@ -104,7 +107,7 @@ export function renameNavigationLabel(
     if (segment === null) {
       issues.push({
         code: 'toc.label-not-unique',
-        message: `${sourceRef.kind.toUpperCase()} 中无法唯一定位该目录文字，未修改该来源。`,
+        message: `The label could not be located uniquely in ${sourceRef.kind.toUpperCase()}; that source was not changed.`,
         path: sourceRef.documentPath,
         severity: 'warning',
       })
@@ -129,7 +132,7 @@ export function renameNavigationLabel(
       session,
       changes,
       'toc-label',
-      `目录改名：“${item.label}”→“${newLabel}”`,
+      `Rename TOC label: “${item.label}” → “${newLabel}”`,
     ),
     updatedPaths: changes.map((change) => change.path),
   }

@@ -1,7 +1,24 @@
 {
   "name": "ajia-epub-editor",
-  "version": "0.1.0-rc.3",
+  "version": "0.1.0",
+  "description": "Local-first, preserve-first browser editor for safe text corrections in EPUB 2 and EPUB 3 books",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AjiaijA/ajia-epub-editor.git"
+  },
+  "homepage": "https://ajia.site/tools/epub-editor/",
+  "keywords": [
+    "epub",
+    "epub-editor",
+    "local-first",
+    "preserve-first",
+    "xhtml"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && vite build",

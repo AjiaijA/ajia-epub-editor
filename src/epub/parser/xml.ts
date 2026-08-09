@@ -42,7 +42,9 @@ export function parseXml(source: string, context: string): Document {
     },
   }).parseFromString(parseSource, 'application/xml')
   if (document.documentElement === null || errors.length > 0) {
-    throw new Error(`${context} XML 无效：${errors.join('; ') || '缺少根元素'}`)
+    throw new Error(
+      `${context} is not valid XML: ${errors.join('; ') || 'missing root element'}`,
+    )
   }
   return document
 }
@@ -51,7 +53,7 @@ function maskSafeDoctype(source: string, context: string): string {
   const matches = [...source.matchAll(/<!DOCTYPE\b/giu)]
   if (matches.length === 0) return source
   if (matches.length > 1) {
-    throw new Error(`${context} 包含多个 DOCTYPE，无法安全解析。`)
+    throw new Error(`${context} contains multiple DOCTYPE declarations.`)
   }
   const start = matches[0]?.index
   if (start === undefined) return source
@@ -63,7 +65,7 @@ function maskSafeDoctype(source: string, context: string): string {
     )
   ) {
     throw new Error(
-      `${context} 包含不安全的 DOCTYPE；不允许内部 DTD 子集或实体声明。`,
+      `${context} contains an unsafe DOCTYPE; internal DTD subsets and entity declarations are not allowed.`,
     )
   }
   const masked = declaration.replace(/[^\r\n]/gu, ' ')
@@ -92,12 +94,12 @@ function findDoctypeEnd(
     }
     if (character === '[') {
       throw new Error(
-        `${context} 包含不安全的 DOCTYPE；不允许内部 DTD 子集或实体声明。`,
+        `${context} contains an unsafe DOCTYPE; internal DTD subsets and entity declarations are not allowed.`,
       )
     }
     if (character === '>') return index + 1
   }
-  throw new Error(`${context} 的 DOCTYPE 未结束。`)
+  throw new Error(`${context} has an unterminated DOCTYPE declaration.`)
 }
 
 export function descendantsByLocalName(

@@ -47,7 +47,8 @@ export function parseNavigation(
   ) {
     issues.push({
       code: 'navigation.sources-differ',
-      message: 'NAV 与 NCX 的目标不完全一致；阅读目录优先采用 NAV。',
+      message:
+        'NAV and NCX targets do not match completely; NAV is used for reading navigation.',
       severity: 'warning',
     })
   }
@@ -58,7 +59,8 @@ export function parseNavigation(
 
   issues.push({
     code: 'navigation.spine-fallback',
-    message: '本书没有可识别的标准目录，当前按阅读顺序显示。',
+    message:
+      'No recognized standard navigation was found; chapters are shown in spine order.',
     severity: 'warning',
   })
   return { alternateItems: [], items: fallbackItems, source: 'spine' }
@@ -87,7 +89,7 @@ function parseNavDocument(
     issues.push(
       navigationError(
         'navigation.invalid-nav',
-        'EPUB 3 NAV 无法解析。',
+        'The EPUB 3 NAV could not be parsed.',
         path,
         cause,
       ),
@@ -145,7 +147,7 @@ function parseNcxDocument(
     issues.push(
       navigationError(
         'navigation.invalid-ncx',
-        'EPUB 2 NCX 无法解析。',
+        'The EPUB 2 NCX could not be parsed.',
         path,
         cause,
       ),
@@ -172,7 +174,7 @@ function parseNavPoints(
     sequence.value += 1
     return createNavigationItem(
       `ncx-${String(sequence.value)}`,
-      label || '未命名目录项',
+      label || 'Untitled navigation item',
       href,
       documentPath,
       'ncx',
@@ -199,7 +201,7 @@ function createNavigationItem(
       if (resolved.external) {
         issues.push({
           code: 'navigation.external-target',
-          message: `目录项“${label}”指向外部资源，已禁用。`,
+          message: `Navigation item “${label}” points to an external resource and was disabled.`,
           path: documentPath,
           severity: 'info',
         })
@@ -208,7 +210,7 @@ function createNavigationItem(
       issues.push(
         navigationError(
           'navigation.unsafe-target',
-          `目录项“${label}”路径无效。`,
+          `Navigation item “${label}” has an invalid path.`,
           documentPath,
           cause,
         ),

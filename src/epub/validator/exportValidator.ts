@@ -33,12 +33,15 @@ export function validateExportSession(
   }
   if (!publication.archive.entries.has('META-INF/container.xml')) {
     issues.push(
-      errorIssue('export.missing-container', '缺少 META-INF/container.xml。'),
+      errorIssue(
+        'export.missing-container',
+        'META-INF/container.xml is missing.',
+      ),
     )
   }
   if (!publication.archive.entries.has(publication.packagePath)) {
     issues.push(
-      errorIssue('export.missing-package', 'package document 不存在。'),
+      errorIssue('export.missing-package', 'The package document is missing.'),
     )
   }
 
@@ -50,7 +53,7 @@ export function validateExportSession(
       issues.push(
         errorIssue(
           'export.missing-manifest-resource',
-          `manifest 资源“${item.href}”不存在。`,
+          `Manifest resource “${item.href}” is missing.`,
           item.archivePath,
         ),
       )
@@ -64,7 +67,7 @@ export function validateExportSession(
         issues.push(
           errorIssue(
             'export.encrypted-dirty-entry',
-            '受保护章节不能作为 dirty entry 导出。',
+            'A protected chapter cannot be exported as a dirty entry.',
             chapter.archivePath,
           ),
         )
@@ -76,7 +79,7 @@ export function validateExportSession(
         issues.push(
           errorIssue(
             'export.invalid-dirty-xhtml',
-            '修改后的 XHTML 不是合法 XML。',
+            'The modified XHTML is not valid XML.',
             chapter.archivePath,
             cause instanceof Error ? cause.message : undefined,
           ),
@@ -92,7 +95,7 @@ export function validateExportSession(
       issues.push(
         errorIssue(
           'export.unknown-dirty-entry',
-          'dirty entry 不属于原始 archive。',
+          'A dirty entry does not belong to the original archive.',
           path,
         ),
       )
@@ -101,7 +104,7 @@ export function validateExportSession(
       issues.push(
         errorIssue(
           'export.missing-modified-bytes',
-          'dirty entry 没有经过验证的 modified bytes。',
+          'A dirty entry has no validated modified bytes.',
           path,
         ),
       )
@@ -114,7 +117,7 @@ export function validateExportSession(
       issues.push(
         errorIssue(
           'export.dirty-without-transaction',
-          'dirty entry 没有明确的编辑 transaction。',
+          'A dirty entry has no explicit edit transaction.',
           path,
         ),
       )
@@ -129,7 +132,7 @@ export function validateExportSession(
         issues.push(
           errorIssue(
             'export.invalid-dirty-xml',
-            '修改后的 NAV/NCX 不是合法 XML。',
+            'The modified NAV or NCX is not valid XML.',
             path,
             cause instanceof Error ? cause.message : undefined,
           ),
@@ -141,7 +144,7 @@ export function validateExportSession(
   if (issues.length === 0) {
     issues.push({
       code: 'export.ready',
-      message: '轻量检查通过，可以导出新的 EPUB。',
+      message: 'Lightweight validation passed. A new EPUB can be exported.',
       severity: 'info',
     })
   }
@@ -178,7 +181,7 @@ function validateLocalReferences(
         ) {
           issues.push({
             code: 'export.missing-linked-resource',
-            message: `章节引用的本地资源不存在：“${href}”。`,
+            message: `A chapter references a missing local resource: “${href}”.`,
             path: chapterPath,
             severity: 'warning',
           })
@@ -187,7 +190,7 @@ function validateLocalReferences(
         issues.push(
           errorIssue(
             'export.unsafe-linked-resource',
-            `章节包含不安全的本地引用：“${href}”。`,
+            `A chapter contains an unsafe local reference: “${href}”.`,
             chapterPath,
             cause instanceof Error ? cause.message : undefined,
           ),

@@ -13,7 +13,22 @@ test('V0.1 RC edits, searches, undoes, exports, and stays local', async ({
   page.on('request', (request) => requests.push(request.url()))
   await page.goto('./')
   const appOrigin = new URL(page.url()).origin
-  await expect(page.getByText('V0.1 RC3 · 本地测试版本')).toBeVisible()
+  await expect(page.getByText('V0.1 · Stable release')).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Open a local EPUB' }),
+  ).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Home' })).toHaveAttribute(
+    'href',
+    '/',
+  )
+  await expect(page.getByRole('link', { name: 'Blog' })).toHaveAttribute(
+    'href',
+    '/blog/',
+  )
+  await page.getByRole('button', { name: '中文' }).click()
+  await expect(
+    page.getByRole('heading', { name: '打开一本本地 EPUB' }),
+  ).toBeVisible()
 
   await page
     .locator('input[type="file"]')

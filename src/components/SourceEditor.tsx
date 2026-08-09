@@ -3,6 +3,7 @@ import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { basicSetup } from 'codemirror'
 import { useEffect, useRef } from 'react'
+import { useI18n } from '../i18n.js'
 
 interface SourceEditorProps {
   readonly onChange: (source: string) => void
@@ -15,6 +16,7 @@ export function SourceEditor({
   readOnly = false,
   value,
 }: SourceEditorProps) {
+  const { text } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
@@ -32,7 +34,9 @@ export function SourceEditor({
         EditorView.lineWrapping,
         EditorView.editable.of(!readOnly),
         EditorView.contentAttributes.of({
-          'aria-label': readOnly ? 'XHTML 源码（只读）' : 'XHTML 源码编辑器',
+          'aria-label': readOnly
+            ? text('XHTML source (read only)', 'XHTML 源码（只读）')
+            : text('XHTML source editor', 'XHTML 源码编辑器'),
           spellcheck: 'false',
         }),
         EditorView.updateListener.of((update) => {
@@ -66,7 +70,7 @@ export function SourceEditor({
       view.destroy()
       editorRef.current = null
     }
-  }, [readOnly])
+  }, [readOnly, text])
 
   useEffect(() => {
     const view = editorRef.current

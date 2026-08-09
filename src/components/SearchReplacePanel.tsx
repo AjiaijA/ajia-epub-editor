@@ -8,6 +8,7 @@ import {
   type SearchScope,
 } from '../epub/search/textSearch.js'
 import type { EpubEditSession } from '../models/publication.js'
+import { useI18n } from '../i18n.js'
 
 interface SearchReplacePanelProps {
   readonly activeChapterPath: string | null
@@ -24,6 +25,7 @@ export function SearchReplacePanel({
   onNavigate,
   session,
 }: SearchReplacePanelProps) {
+  const { locale, text } = useI18n()
   const [query, setQuery] = useState('')
   const [replacement, setReplacement] = useState('')
   const [scope, setScope] = useState<SearchScope>('book')
@@ -75,7 +77,12 @@ export function SearchReplacePanel({
           setResults([])
           setIndexing(false)
           setError(
-            cause instanceof Error ? cause.message : '无法建立正文索引。',
+            cause instanceof Error && locale === 'en'
+              ? cause.message
+              : text(
+                  'The body-text index could not be created.',
+                  '无法建立正文索引。',
+                ),
           )
         })
     }, 120)
@@ -83,7 +90,7 @@ export function SearchReplacePanel({
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [activeChapterPath, query, scope, session])
+  }, [activeChapterPath, locale, query, scope, session, text])
   const selected = results[Math.min(selectedIndex, results.length - 1)]
   const chapterCount = new Set(results.map((result) => result.chapterPath)).size
 
@@ -108,7 +115,11 @@ export function SearchReplacePanel({
       setError(null)
       setSelectedIndex(0)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '替换失败。')
+      setError(
+        cause instanceof Error && locale === 'en'
+          ? cause.message
+          : text('Replacement failed.', '替换失败。'),
+      )
     }
   }
   const replaceAll = (): void => {
@@ -120,45 +131,52 @@ export function SearchReplacePanel({
       setError(null)
       setSelectedIndex(0)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '全部替换失败。')
+      setError(
+        cause instanceof Error && locale === 'en'
+          ? cause.message
+          : text('Replace all failed.', '全部替换失败。'),
+      )
     }
   }
 
   return (
-    <section aria-label="查找替换" className="search-panel">
+    <section
+      aria-label={text('Find and replace', '查找替换')}
+      className="search-panel"
+    >
       <div className="search-panel__heading">
         <div>
-          <p className="eyebrow">正文 TextSegment</p>
-          <h2>查找替换</h2>
+          <p className="eyebrow">Body TextSegment</p>
+          <h2>{text('Find & replace', '查找替换')}</h2>
         </div>
         <button className="secondary-button" onClick={onClose} type="button">
-          关闭
+          {text('Close', '关闭')}
         </button>
       </div>
       <label>
-        查找正文
+        {text('Find in body text', '查找正文')}
         <input
           onChange={(event) => {
             setQuery(event.target.value)
             setSelectedIndex(0)
           }}
-          placeholder="输入查找文字"
+          placeholder={text('Enter text to find', '输入查找文字')}
           ref={queryInputRef}
           value={query}
         />
       </label>
       <label>
-        替换为
+        {text('Replace with', '替换为')}
         <input
           onChange={(event) => {
             setReplacement(event.target.value)
           }}
-          placeholder="可以留空以删除"
+          placeholder={text('Leave empty to delete', '可以留空以删除')}
           value={replacement}
         />
       </label>
       <fieldset>
-        <legend>范围</legend>
+        <legend>{text('Scope', '范围')}</legend>
         <label>
           <input
             checked={scope === 'chapter'}
@@ -169,7 +187,7 @@ export function SearchReplacePanel({
             }}
             type="radio"
           />
-          当前章节
+          {text('Current chapter', '当前章节')}
         </label>
         <label>
           <input
@@ -181,14 +199,16 @@ export function SearchReplacePanel({
             }}
             type="radio"
           />
-          全书
+          {text('Whole book', '全书')}
         </label>
       </fieldset>
       <div aria-live="polite" className="search-summary" role="status">
         {indexing ? (
           <>
-            <progress aria-label="正在建立正文索引" />
-            <span>正在后台建立正文索引…</span>
+            <progress
+              aria-label={text('Indexing body text', '正在建立正文索引')}
+            />
+            <span>{text('Indexing body text…', '正在后台建立正文索引…')}</span>
             <button
               className="cancel-button cancel-button--inline"
               onClick={() => {
@@ -199,19 +219,28 @@ export function SearchReplacePanel({
               }}
               type="button"
             >
-              取消索引
+              {text('Cancel indexing', '取消索引')}
             </button>
           </>
         ) : query === '' ? (
-          '输入查找文字后开始索引。'
+          text('Enter text to begin searching.', '输入查找文字后开始索引。')
         ) : indexCancelled ? (
-          '索引已取消；修改查找文字即可重新开始。'
+          text(
+            'Indexing was cancelled. Change the query to restart.',
+            '索引已取消；修改查找文字即可重新开始。',
+          )
         ) : (
-          `找到 ${String(results.length)} 处，涉及 ${String(chapterCount)} 章。`
+          text(
+            `Found ${String(results.length)} matches in ${String(chapterCount)} chapters.`,
+            `找到 ${String(results.length)} 处，涉及 ${String(chapterCount)} 章。`,
+          )
         )}
       </div>
       <p className="search-help">
-        仅搜索正文，不搜索属性；跨 inline text segment 的词组不会匹配。
+        {text(
+          'Search covers body text, not attributes. Phrases spanning inline text segments do not match.',
+          '仅搜索正文，不搜索属性；跨 inline text segment 的词组不会匹配。',
+        )}
       </p>
       {error === null ? null : (
         <p className="search-error" role="alert">
@@ -227,7 +256,7 @@ export function SearchReplacePanel({
           }}
           type="button"
         >
-          上一处
+          {text('Previous', '上一处')}
         </button>
         <span className="search-position">
           {selected === undefined
@@ -242,7 +271,7 @@ export function SearchReplacePanel({
           }}
           type="button"
         >
-          下一处
+          {text('Next', '下一处')}
         </button>
       </div>
       <div className="search-actions">
@@ -252,7 +281,7 @@ export function SearchReplacePanel({
           onClick={replaceOne}
           type="button"
         >
-          替换当前
+          {text('Replace current', '替换当前')}
         </button>
         <button
           className="apply-button"
@@ -260,7 +289,8 @@ export function SearchReplacePanel({
           onClick={replaceAll}
           type="button"
         >
-          全部替换 {results.length > 0 ? `(${String(results.length)})` : ''}
+          {text('Replace all', '全部替换')}{' '}
+          {results.length > 0 ? `(${String(results.length)})` : ''}
         </button>
       </div>
       <ol className="search-results">

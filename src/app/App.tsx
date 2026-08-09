@@ -4,6 +4,7 @@ import { IssuePanel } from '../components/IssuePanel.js'
 import { NavigationTree } from '../components/NavigationTree.js'
 import { SafeVisualEditor } from '../components/SafeVisualEditor.js'
 import { SearchReplacePanel } from '../components/SearchReplacePanel.js'
+import { SiteNav } from '../components/SiteNav.js'
 import { SourceEditor } from '../components/SourceEditor.js'
 import { TocLabelEditor } from '../components/TocLabelEditor.js'
 import {
@@ -27,6 +28,7 @@ import {
   type NavigationItem,
 } from '../models/publication.js'
 import { RELEASE_LABEL } from '../release.js'
+import { I18nProvider, useI18n } from '../i18n.js'
 import { openPublicationAsync } from './openPublicationAsync.js'
 import { exportEpubAsync } from './exportEpubAsync.js'
 
@@ -39,6 +41,15 @@ type AppState =
 type EditorMode = 'preview' | 'source' | 'visual'
 
 export function App() {
+  return (
+    <I18nProvider>
+      <EditorApp />
+    </I18nProvider>
+  )
+}
+
+function EditorApp() {
+  const { locale, text } = useI18n()
   const [state, setState] = useState<AppState>({ kind: 'empty' })
   const [activePath, setActivePath] = useState<string | null>(null)
   const [mode, setMode] = useState<EditorMode>('preview')
@@ -119,7 +130,12 @@ export function App() {
     if (
       session !== null &&
       session.dirtyEntries.size > 0 &&
-      !window.confirm('当前修改尚未导出。确认放弃修改并打开另一本书吗？')
+      !window.confirm(
+        text(
+          'Your changes have not been exported. Discard them and open another book?',
+          '当前修改尚未导出。确认放弃修改并打开另一本书吗？',
+        ),
+      )
     ) {
       return
     }
@@ -156,7 +172,10 @@ export function App() {
           : [
               {
                 code: 'open.unexpected',
-                message: '无法打开这个 EPUB。',
+                message: text(
+                  'This EPUB could not be opened.',
+                  '无法打开这个 EPUB。',
+                ),
                 severity: 'error' as const,
                 ...(cause instanceof Error ? { detail: cause.message } : {}),
               },
@@ -204,8 +223,13 @@ export function App() {
     } catch (cause) {
       setSourceError(
         cause instanceof SourceValidationError
-          ? cause.message
-          : '源码提交失败，请检查 XHTML。',
+          ? locale === 'zh'
+            ? 'XHTML 验证失败，请检查源码结构。'
+            : cause.message
+          : text(
+              'Source changes could not be applied. Check the XHTML.',
+              '源码提交失败，请检查 XHTML。',
+            ),
       )
       return null
     }
@@ -236,7 +260,10 @@ export function App() {
       pendingVisualRef.current = null
       setVisualResetRevision((revision) => revision + 1)
       setVisualError(
-        '这次修改未保存，原文字已恢复；您可以继续操作。若要改变标签结构，请使用 XHTML 源码模式。',
+        text(
+          'This change was not saved. The original text has been restored and you can continue editing. Use XHTML Source to change markup.',
+          '这次修改未保存，原文字已恢复；您可以继续操作。若要改变标签结构，请使用 XHTML 源码模式。',
+        ),
       )
       return { accepted: false, session: sourceSession }
     }
@@ -260,7 +287,12 @@ export function App() {
 
   function showVisual(): void {
     if (session === null || activeChapter?.visualEditCapability !== 'safe') {
-      setVisualError('本章包含复杂结构，请使用预览或 XHTML 源码模式。')
+      setVisualError(
+        text(
+          'This chapter contains complex markup. Use Preview or XHTML Source.',
+          '本章包含复杂结构，请使用预览或 XHTML 源码模式。',
+        ),
+      )
       return
     }
     const nextSession = commitDraft(session)
@@ -319,7 +351,12 @@ export function App() {
   function restoreActiveChapter(): void {
     if (session === null || activeChapter === null) return
     if (
-      !window.confirm('确认将本章恢复为打开 EPUB 时的内容吗？此操作可以 Undo。')
+      !window.confirm(
+        text(
+          'Restore this chapter to the version from the opened EPUB? You can undo this action.',
+          '确认将本章恢复为打开 EPUB 时的内容吗？此操作可以 Undo。',
+        ),
+      )
     ) {
       return
     }
@@ -332,7 +369,12 @@ export function App() {
       applySession(nextSession, activeChapter.archivePath)
     } catch (cause) {
       setSourceError(
-        cause instanceof Error ? cause.message : '无法恢复本章原始内容。',
+        cause instanceof Error && locale === 'en'
+          ? cause.message
+          : text(
+              'The original chapter could not be restored.',
+              '无法恢复本章原始内容。',
+            ),
       )
     }
   }
@@ -366,7 +408,10 @@ export function App() {
         ...exported.validation.issues,
         {
           code: 'export.download-created',
-          message: `已生成“${exported.fileName}”，原文件未被覆盖。`,
+          message: text(
+            `Created “${exported.fileName}”. The original file was not overwritten.`,
+            `已生成“${exported.fileName}”，原文件未被覆盖。`,
+          ),
           severity: 'info',
         },
       ])
@@ -377,7 +422,10 @@ export function App() {
           : [
               {
                 code: 'export.failed',
-                message: '导出失败，没有生成下载文件。',
+                message: text(
+                  'Export failed. No download file was created.',
+                  '导出失败，没有生成下载文件。',
+                ),
                 severity: 'error',
                 ...(cause instanceof Error ? { detail: cause.message } : {}),
               },
@@ -392,14 +440,17 @@ export function App() {
     const issues = state.kind === 'error' ? state.issues : []
     return (
       <main className="welcome-shell">
-        <header className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">
-            A
-          </span>
-          <div>
-            <p className="eyebrow">Local-first · Preserve-first</p>
-            <h1>Ajia EPUB Editor</h1>
+        <header className="welcome-header">
+          <div className="brand-lockup">
+            <span className="brand-mark" aria-hidden="true">
+              A
+            </span>
+            <div>
+              <p className="eyebrow">Local-first · Preserve-first</p>
+              <h1>Ajia EPUB Editor</h1>
+            </div>
           </div>
+          <SiteNav />
         </header>
         <section
           className="drop-zone"
@@ -412,17 +463,31 @@ export function App() {
             if (file !== undefined) void openFile(file)
           }}
         >
-          <p className="phase-label">{RELEASE_LABEL} · 本地测试版本</p>
+          <p className="phase-label">
+            {RELEASE_LABEL} · {text('Stable release', '稳定版本')}
+          </p>
           <h2>
             {state.kind === 'loading'
-              ? `正在检查 ${state.fileName}`
-              : '打开一本本地 EPUB'}
+              ? text(`Checking ${state.fileName}`, `正在检查 ${state.fileName}`)
+              : text('Open a local EPUB', '打开一本本地 EPUB')}
           </h2>
-          <p>先检查压缩包安全与书籍结构，再在本地进行源码修订。</p>
+          <p>
+            {text(
+              'The archive and book structure are checked before any local editing begins.',
+              '先检查压缩包安全与书籍结构，再在本地进行源码修订。',
+            )}
+          </p>
           {state.kind === 'loading' ? (
             <div aria-live="polite" className="task-progress" role="status">
-              <progress aria-label="正在安全检查 EPUB" />
-              <span>正在后台检查压缩包、书籍结构和目录…</span>
+              <progress
+                aria-label={text('Checking EPUB safety', '正在安全检查 EPUB')}
+              />
+              <span>
+                {text(
+                  'Checking the archive, book structure, and table of contents…',
+                  '正在后台检查压缩包、书籍结构和目录…',
+                )}
+              </span>
             </div>
           ) : null}
           <button
@@ -433,7 +498,9 @@ export function App() {
             }}
             type="button"
           >
-            {state.kind === 'loading' ? '正在打开…' : '选择 EPUB 文件'}
+            {state.kind === 'loading'
+              ? text('Opening…', '正在打开…')
+              : text('Choose EPUB file', '选择 EPUB 文件')}
           </button>
           {state.kind === 'loading' ? (
             <button
@@ -443,15 +510,21 @@ export function App() {
               }}
               type="button"
             >
-              取消
+              {text('Cancel', '取消')}
             </button>
           ) : null}
           <FileInput inputRef={inputRef} onFile={openFile} />
           <p className="privacy-note">
-            文件只在您的浏览器中处理，不会上传到服务器。
+            {text(
+              'Your file is processed only in this browser and is never uploaded.',
+              '文件只在您的浏览器中处理，不会上传到服务器。',
+            )}
           </p>
           <p className="support-note">
-            支持无 DRM 的 EPUB 2 / EPUB 3；导出始终生成新文件。
+            {text(
+              'Supports DRM-free EPUB 2 and EPUB 3. Export always creates a new file.',
+              '支持无 DRM 的 EPUB 2 / EPUB 3；导出始终生成新文件。',
+            )}
           </p>
         </section>
         {issues.length > 0 ? <IssuePanel issues={issues} /> : null}
@@ -487,15 +560,18 @@ export function App() {
             <h1>{readyPublication.packageDocument.title}</h1>
           </div>
         </div>
+        <SiteNav />
         <div className="header-actions">
-          <span className="local-badge">仅本地处理</span>
+          <span className="local-badge">
+            {text('Local only', '仅本地处理')}
+          </span>
           <button
             className="secondary-button"
             onClick={openSearch}
             ref={searchButtonRef}
             type="button"
           >
-            查找替换
+            {text('Find & replace', '查找替换')}
           </button>
           <button
             className="secondary-button"
@@ -504,7 +580,7 @@ export function App() {
             }}
             type="button"
           >
-            检查
+            {text('Check', '检查')}
           </button>
           <button
             className="export-button"
@@ -514,7 +590,9 @@ export function App() {
             }}
             type="button"
           >
-            {exporting ? '正在导出…' : '导出 EPUB'}
+            {exporting
+              ? text('Exporting…', '正在导出…')
+              : text('Export EPUB', '导出 EPUB')}
           </button>
           <button
             className="secondary-button"
@@ -523,7 +601,7 @@ export function App() {
             }}
             type="button"
           >
-            打开另一本
+            {text('Open another', '打开另一本')}
           </button>
           <FileInput inputRef={inputRef} onFile={openFile} />
         </div>
@@ -531,8 +609,11 @@ export function App() {
 
       {exporting ? (
         <div aria-live="polite" className="task-status" role="status">
-          <progress aria-label="正在导出 EPUB" />
-          正在后台验证并生成新 EPUB，请保持页面开启…
+          <progress aria-label={text('Exporting EPUB', '正在导出 EPUB')} />
+          {text(
+            'Validating and creating a new EPUB in the background. Keep this page open…',
+            '正在后台验证并生成新 EPUB，请保持页面开启…',
+          )}
         </div>
       ) : null}
 
@@ -542,13 +623,13 @@ export function App() {
             <p>{readyPublication.fileName}</p>
             <span>
               EPUB {readyPublication.epubVersion} ·{' '}
-              {readyPublication.chapters.length} 章
+              {readyPublication.chapters.length} {text('chapters', '章')}
             </span>
           </div>
           <div className="section-heading section-heading--sidebar">
             <div>
-              <p className="eyebrow">阅读顺序</p>
-              <h2>目录</h2>
+              <p className="eyebrow">{text('Reading order', '阅读顺序')}</p>
+              <h2>{text('Contents', '目录')}</h2>
             </div>
             <span className="source-badge">
               {currentNavigation?.source.toUpperCase() ?? '—'}
@@ -583,27 +664,34 @@ export function App() {
             <div>
               <p className="eyebrow">
                 {mode === 'preview'
-                  ? '隔离预览'
+                  ? text('Isolated preview', '隔离预览')
                   : mode === 'visual'
-                    ? '安全文字编辑'
-                    : '高级源码模式'}
+                    ? text('Safe text editing', '安全文字编辑')
+                    : text('Advanced source mode', '高级源码模式')}
               </p>
               <h2 id="chapter-heading">
-                {activeChapter?.title ?? '没有可用章节'}
+                {activeChapter?.title ??
+                  text('No chapter available', '没有可用章节')}
               </h2>
             </div>
             <div className="reading-tools">
               {mode === 'preview' && preview !== null ? (
                 <span className="sanitization-badge">
-                  已隔离 · 拦截 {preview.blockedResourceCount} 项
+                  {text('Isolated', '已隔离')} · {text('blocked', '拦截')}{' '}
+                  {preview.blockedResourceCount}
                 </span>
               ) : null}
               {mode === 'visual' ? (
                 <span className="sanitization-badge">
-                  虚线文字可编辑 · {visualSegments.length} 段
+                  {text('Dotted text is editable', '虚线文字可编辑')} ·{' '}
+                  {visualSegments.length} {text('segments', '段')}
                 </span>
               ) : null}
-              <div className="editor-tabs" role="tablist" aria-label="章节视图">
+              <div
+                className="editor-tabs"
+                role="tablist"
+                aria-label={text('Chapter view', '章节视图')}
+              >
                 <button
                   aria-selected={mode === 'visual'}
                   disabled={activeChapter?.visualEditCapability !== 'safe'}
@@ -611,7 +699,7 @@ export function App() {
                   role="tab"
                   type="button"
                 >
-                  安全编辑
+                  {text('Safe edit', '安全编辑')}
                 </button>
                 <button
                   aria-selected={mode === 'preview'}
@@ -619,7 +707,7 @@ export function App() {
                   role="tab"
                   type="button"
                 >
-                  预览
+                  {text('Preview', '预览')}
                 </button>
                 <button
                   aria-selected={mode === 'source'}
@@ -627,7 +715,7 @@ export function App() {
                   role="tab"
                   type="button"
                 >
-                  XHTML 源码
+                  {text('XHTML Source', 'XHTML 源码')}
                 </button>
               </div>
             </div>
@@ -636,17 +724,20 @@ export function App() {
           {visualError === null ? null : (
             <div className="source-error visual-error" role="alert">
               <div>
-                <strong>安全编辑提示</strong>
+                <strong>{text('Safe editing notice', '安全编辑提示')}</strong>
                 <span>{visualError}</span>
               </div>
               <button
-                aria-label="关闭安全编辑提示"
+                aria-label={text(
+                  'Dismiss safe editing notice',
+                  '关闭安全编辑提示',
+                )}
                 onClick={() => {
                   setVisualError(null)
                 }}
                 type="button"
               >
-                关闭提示
+                {text('Dismiss', '关闭提示')}
               </button>
             </div>
           )}
@@ -654,19 +745,31 @@ export function App() {
           {mode === 'source' ? (
             sourceLocked ? (
               <div className="empty-preview">
-                本章标记为受保护内容，不能查看或修改源码。
+                {text(
+                  'This chapter is protected. Its source cannot be viewed or edited.',
+                  '本章标记为受保护内容，不能查看或修改源码。',
+                )}
               </div>
             ) : (
               <div className="source-workspace">
                 <div className="source-actions">
                   <span>
                     {draftChanged
-                      ? '有尚未验证的源码修改'
+                      ? text(
+                          'Source changes have not been validated',
+                          '有尚未验证的源码修改',
+                        )
                       : readySession.dirtyEntries.has(
                             activeChapter?.archivePath ?? '',
                           )
-                        ? '本章已有已验证修改'
-                        : '源码与打开时一致'}
+                        ? text(
+                            'This chapter has validated changes',
+                            '本章已有已验证修改',
+                          )
+                        : text(
+                            'Source matches the opened EPUB',
+                            '源码与打开时一致',
+                          )}
                   </span>
                   <div>
                     <button
@@ -681,7 +784,7 @@ export function App() {
                       onClick={restoreActiveChapter}
                       type="button"
                     >
-                      恢复本章打开时内容
+                      {text('Restore opened version', '恢复本章打开时内容')}
                     </button>
                     <button
                       className="secondary-button"
@@ -692,7 +795,7 @@ export function App() {
                       }}
                       type="button"
                     >
-                      取消本次输入
+                      {text('Discard draft', '取消本次输入')}
                     </button>
                     <button
                       className="apply-button"
@@ -702,18 +805,25 @@ export function App() {
                       }}
                       type="button"
                     >
-                      验证并应用
+                      {text('Validate & apply', '验证并应用')}
                     </button>
                   </div>
                 </div>
                 {sourceError === null ? null : (
                   <div className="source-error" role="alert">
-                    <strong>XML 未通过验证</strong>
+                    <strong>
+                      {text('XML validation failed', 'XML 未通过验证')}
+                    </strong>
                     <span>{sourceError}</span>
                   </div>
                 )}
                 {activeChapter === null ? (
-                  <div className="empty-preview">没有可编辑的 XHTML 章节。</div>
+                  <div className="empty-preview">
+                    {text(
+                      'No editable XHTML chapter is available.',
+                      '没有可编辑的 XHTML 章节。',
+                    )}
+                  </div>
                 ) : (
                   <SourceEditor
                     key={activeChapter.archivePath}
@@ -739,18 +849,24 @@ export function App() {
             />
           ) : activeChapter === null ? (
             <div className="empty-preview">
-              spine 中没有可读取的 XHTML 章节。
+              {text(
+                'The spine contains no readable XHTML chapter.',
+                'spine 中没有可读取的 XHTML 章节。',
+              )}
             </div>
           ) : preview === null ? (
             <div className="empty-preview">
-              本章结构无法安全预览，请切换到 XHTML 源码修正。
+              {text(
+                'This chapter cannot be previewed safely. Use XHTML Source to inspect it.',
+                '本章结构无法安全预览，请切换到 XHTML 源码修正。',
+              )}
             </div>
           ) : (
             <iframe
               className="chapter-frame"
               sandbox=""
               srcDoc={preview.html}
-              title={`${activeChapter.title}只读预览`}
+              title={`${activeChapter.title} ${text('read-only preview', '只读预览')}`}
             />
           )}
         </section>
@@ -778,9 +894,11 @@ export function App() {
       </div>
       <footer className="reader-footer">
         <span>
-          本地处理 · 已修改 {readySession.dirtyEntries.size} 个 entry · 涉及{' '}
-          {affectedChapterCount} 章 · {readySession.transactions.length}{' '}
-          次编辑提交
+          {text('Local processing', '本地处理')} ·{' '}
+          {readySession.dirtyEntries.size}{' '}
+          {text('modified entries', '个已修改 entry')} · {affectedChapterCount}{' '}
+          {text('chapters affected', '章受影响')} ·{' '}
+          {readySession.transactions.length} {text('saved edits', '次编辑提交')}
         </span>
         <span className="history-actions">
           <button
@@ -798,8 +916,10 @@ export function App() {
             Redo
           </button>
           <span>
-            {readySession.transactions.at(-1)?.summary ?? '尚无修改'} ·{' '}
-            {RELEASE_LABEL}
+            {readySession.transactions.length === 0
+              ? text('No changes yet', '尚无修改')
+              : text('Last change saved', '最近修改已保存')}{' '}
+            · {RELEASE_LABEL}
           </span>
         </span>
       </footer>

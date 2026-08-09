@@ -6,6 +6,7 @@ import type {
   EpubIssue,
   NavigationItem,
 } from '../models/publication.js'
+import { useI18n } from '../i18n.js'
 
 interface TocLabelEditorProps {
   readonly item: NavigationItem
@@ -21,6 +22,7 @@ export function TocLabelEditor({
   onApply,
   session,
 }: TocLabelEditorProps) {
+  const { locale, text } = useI18n()
   const [label, setLabel] = useState(item.label)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
@@ -29,9 +31,12 @@ export function TocLabelEditor({
   }, [item.id, item.label])
 
   return (
-    <section aria-label="目录名称编辑" className="toc-editor">
+    <section
+      aria-label={text('Table of contents label editor', '目录名称编辑')}
+      className="toc-editor"
+    >
       <label>
-        目录显示文字
+        {text('Display text', '目录显示文字')}
         <input
           onChange={(event) => {
             setLabel(event.target.value)
@@ -48,19 +53,28 @@ export function TocLabelEditor({
             onApply(result.session, result.issues)
             setError(null)
           } catch (cause) {
-            setError(cause instanceof Error ? cause.message : '目录改名失败。')
+            setError(
+              cause instanceof Error && locale === 'en'
+                ? cause.message
+                : text('The label could not be renamed.', '目录改名失败。'),
+            )
           }
         }}
         type="button"
       >
-        更新目录名称
+        {text('Update label', '更新目录名称')}
       </button>
       {error === null ? null : (
         <p className="search-error" role="alert">
           {error}
         </p>
       )}
-      <p>只修改 label；href、fragment 与阅读顺序保持不变。</p>
+      <p>
+        {text(
+          'Only the label changes. The href, fragment, and reading order stay unchanged.',
+          '只修改 label；href、fragment 与阅读顺序保持不变。',
+        )}
+      </p>
     </section>
   )
 }

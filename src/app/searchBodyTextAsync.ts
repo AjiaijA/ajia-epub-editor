@@ -42,7 +42,7 @@ export async function searchBodyTextAsync(
     worker.onerror = () => {
       signal?.removeEventListener('abort', abort)
       worker.terminate()
-      reject(new Error('正文索引后台任务异常终止。'))
+      reject(new Error('The body-text indexing worker stopped unexpectedly.'))
     }
     worker.postMessage({ activeChapterPath, query, scope, session })
   })
@@ -53,7 +53,7 @@ function throwIfAborted(signal?: AbortSignal): void {
 }
 
 function abortError(): Error {
-  const error = new Error('正文索引已取消。')
+  const error = new Error('Body-text indexing was cancelled.')
   error.name = 'AbortError'
   return error
 }

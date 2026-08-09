@@ -1,9 +1,9 @@
 # Compatibility
 
-Status: V0.1 RC3 deployed and verified online on 2026-08-09. Calibre 9.11 and
+Status: V0.1 release candidate verified locally on 2026-08-09. Calibre 9.11 and
 Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 
-## V0.1 RC3 application matrix
+## V0.1 application matrix
 
 | Surface                  | Evidence                                                   | Result       |
 | ------------------------ | ---------------------------------------------------------- | ------------ |
@@ -13,6 +13,9 @@ Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 | Search responsiveness    | Dedicated cancellable Worker with fallback unit tests      | Pass         |
 | Release package          | Versioned static ZIP plus SHA-256 sidecar                  | Pass         |
 | ajia.site online flow    | Open/edit/export/reopen; every request stays on site       | Pass         |
+| English default UI       | Fresh storage opens English metadata, navigation and tools | Pass         |
+| Chinese optional UI      | Switch updates UI/lang and persists only locale preference | Pass         |
+| Site navigation          | Home, Blog, localized About, and All tools links           | Pass         |
 | Apple Books              | User confirms edited fixture opens; detailed check pending | Partial pass |
 | Calibre 9.11 Viewer      | Viewer load plus user-confirmed NCX label and edited body  | Pass         |
 | Thorium Reader 3.4.0     | Edited fixture opened; user confirmed reader smoke test    | Pass         |

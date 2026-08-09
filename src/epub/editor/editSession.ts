@@ -54,7 +54,7 @@ export function getChapterSource(
   chapterPath: string,
 ): string {
   const source = session.currentSources.get(chapterPath)
-  if (source === undefined) throw new Error(`章节不存在：${chapterPath}`)
+  if (source === undefined) throw new Error(`Chapter not found: ${chapterPath}`)
   return source
 }
 
@@ -62,7 +62,7 @@ export function getEntrySource(session: EpubEditSession, path: string): string {
   const current = session.currentSources.get(path)
   if (current !== undefined) return current
   const entry = session.publication.archive.entries.get(path)
-  if (entry === undefined) throw new Error(`Entry 不存在：${path}`)
+  if (entry === undefined) throw new Error(`Entry not found: ${path}`)
   return decodeUtf8Xml(session.modifiedEntries.get(path) ?? entry.originalData)
     .source
 }
@@ -76,7 +76,7 @@ export function commitChapterSource(
   if (chapter.sourceEditCapability === 'encrypted') {
     throw new SourceValidationError(
       chapterPath,
-      '受保护章节不能在源码模式中修改。',
+      'Protected chapters cannot be edited in source mode.',
     )
   }
   validateChapterSource(chapterPath, source)
@@ -84,7 +84,7 @@ export function commitChapterSource(
     session,
     [{ afterSource: source, path: chapterPath }],
     'source-edit',
-    `修改章节源码：${chapter.title}`,
+    `Edit chapter source: ${chapter.title}`,
   )
 }
 
@@ -107,7 +107,10 @@ export function commitVisualText(
 ): EpubEditSession {
   const chapter = findChapter(session.publication, chapterPath)
   if (chapter.sourceEditCapability === 'encrypted') {
-    throw new SourceValidationError(chapterPath, '受保护章节不能修改。')
+    throw new SourceValidationError(
+      chapterPath,
+      'Protected chapters cannot be edited.',
+    )
   }
   const chapterRevision = session.chapterRevisions.get(chapterPath) ?? 0
   const segment = findSafeVisualTextSegments(
@@ -118,7 +121,7 @@ export function commitVisualText(
   if (segment === undefined) {
     throw new SourceValidationError(
       chapterPath,
-      '可视编辑位置已经失效，请刷新章节后重试。',
+      'The visual-edit position is stale. Refresh the chapter and try again.',
     )
   }
   const patched = applySafeTextPatch(
@@ -131,7 +134,7 @@ export function commitVisualText(
     session,
     [{ afterSource: patched.source, path: chapterPath }],
     'text-edit',
-    `修改正文：${chapter.title}`,
+    `Edit body text: ${chapter.title}`,
   )
 }
 
@@ -143,7 +146,7 @@ export function commitSourceChanges(
 ): EpubEditSession {
   const uniquePaths = new Set(inputs.map((input) => input.path))
   if (uniquePaths.size !== inputs.length) {
-    throw new Error('同一 transaction 不能重复修改同一 entry。')
+    throw new Error('A transaction cannot modify the same entry twice.')
   }
   const changes: EntrySourceChange[] = []
   for (const input of inputs) {
@@ -151,7 +154,7 @@ export function commitSourceChanges(
     if (beforeSource === input.afterSource) continue
     validateEntrySource(session, input.path, input.afterSource)
     const entry = session.publication.archive.entries.get(input.path)
-    if (entry === undefined) throw new Error(`Entry 不存在：${input.path}`)
+    if (entry === undefined) throw new Error(`Entry not found: ${input.path}`)
     const encoding = encodingForPath(session, input.path)
     changes.push({
       afterBytes: encodeUtf8Xml(input.afterSource, encoding),
@@ -215,12 +218,12 @@ export function validateChapterSource(
       root === null ||
       (root.localName ?? root.tagName).toLowerCase() !== 'html'
     ) {
-      throw new Error('XHTML 根元素必须是 html。')
+      throw new Error('The XHTML root element must be html.')
     }
   } catch (cause) {
     throw new SourceValidationError(
       chapterPath,
-      cause instanceof Error ? cause.message : 'XHTML XML 无效。',
+      cause instanceof Error ? cause.message : 'The XHTML is not valid XML.',
     )
   }
 }
@@ -239,7 +242,8 @@ function applyChanges(
   const chapterRevisions = new Map(session.chapterRevisions)
   for (const change of changes) {
     const original = session.publication.archive.entries.get(change.path)
-    if (original === undefined) throw new Error(`Entry 不存在：${change.path}`)
+    if (original === undefined)
+      throw new Error(`Entry not found: ${change.path}`)
     currentSources.set(change.path, change.afterSource)
     if (byteEqual(change.afterBytes, original.originalData)) {
       modifiedEntries.delete(change.path)
@@ -288,7 +292,7 @@ function encodingForPath(
   )
   if (chapter !== undefined) return chapter.sourceEncoding
   const entry = session.publication.archive.entries.get(path)
-  if (entry === undefined) throw new Error(`Entry 不存在：${path}`)
+  if (entry === undefined) throw new Error(`Entry not found: ${path}`)
   return decodeUtf8Xml(entry.originalData).encoding
 }
 
@@ -299,7 +303,8 @@ function findChapter(
   const chapter = publication.chapters.find(
     (candidate) => candidate.archivePath === chapterPath,
   )
-  if (chapter === undefined) throw new Error(`章节不存在：${chapterPath}`)
+  if (chapter === undefined)
+    throw new Error(`Chapter not found: ${chapterPath}`)
   return chapter
 }
 

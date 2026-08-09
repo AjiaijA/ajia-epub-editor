@@ -39,23 +39,26 @@ export function preflightArchive(
 ): ArchivePreflightResult {
   const issues: EpubIssue[] = []
   if (bytes.byteLength > limits.maxFileBytes) {
-    throw new EpubOpenError('EPUB 文件超过安全上限。', [
-      errorIssue('archive.file-too-large', 'EPUB 文件超过 100 MiB 安全上限。'),
+    throw new EpubOpenError('The EPUB exceeds the safety limit.', [
+      errorIssue(
+        'archive.file-too-large',
+        'The EPUB exceeds the 100 MiB safety limit.',
+      ),
     ])
   }
   if (bytes.byteLength < 22) {
-    throw new EpubOpenError('ZIP 文件不完整。', [
-      errorIssue('archive.truncated', '文件太短，不是完整的 ZIP。'),
+    throw new EpubOpenError('The ZIP file is incomplete.', [
+      errorIssue('archive.truncated', 'The file is too short to be a ZIP.'),
     ])
   }
 
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   const eocdOffset = findEndOfCentralDirectory(view)
   if (eocdOffset === -1) {
-    throw new EpubOpenError('找不到 ZIP central directory。', [
+    throw new EpubOpenError('The ZIP central directory was not found.', [
       errorIssue(
         'archive.missing-central-directory',
-        '无法定位 ZIP 目录记录。',
+        'The ZIP directory record could not be located.',
       ),
     ])
   }
@@ -67,7 +70,9 @@ export function preflightArchive(
   const centralSize = view.getUint32(eocdOffset + 12, true)
   const centralOffset = view.getUint32(eocdOffset + 16, true)
   if (diskNumber !== 0 || centralDisk !== 0 || entriesOnDisk !== entryCount) {
-    issues.push(errorIssue('archive.multi-disk', '不支持分卷 ZIP。'))
+    issues.push(
+      errorIssue('archive.multi-disk', 'Multi-disk ZIP is unsupported.'),
+    )
   }
   if (
     entryCount === 0xffff ||
@@ -75,17 +80,23 @@ export function preflightArchive(
     centralOffset === 0xffffffff
   ) {
     issues.push(
-      errorIssue('archive.zip64-unsupported', '当前阶段不支持 ZIP64 EPUB。'),
+      errorIssue('archive.zip64-unsupported', 'ZIP64 EPUB is unsupported.'),
     )
   }
   if (entryCount > limits.maxEntries) {
     issues.push(
-      errorIssue('archive.too-many-entries', 'ZIP entry 数量超过安全上限。'),
+      errorIssue(
+        'archive.too-many-entries',
+        'The ZIP entry count exceeds the safety limit.',
+      ),
     )
   }
   if (centralOffset + centralSize > eocdOffset) {
     issues.push(
-      errorIssue('archive.invalid-central-directory', 'ZIP 目录范围无效。'),
+      errorIssue(
+        'archive.invalid-central-directory',
+        'The ZIP central-directory range is invalid.',
+      ),
     )
   }
 
@@ -99,7 +110,10 @@ export function preflightArchive(
       view.getUint32(offset, true) !== CENTRAL_DIRECTORY_SIGNATURE
     ) {
       issues.push(
-        errorIssue('archive.invalid-central-entry', 'ZIP 目录项损坏或截断。'),
+        errorIssue(
+          'archive.invalid-central-entry',
+          'A ZIP central-directory entry is damaged or truncated.',
+        ),
       )
       break
     }
@@ -116,7 +130,10 @@ export function preflightArchive(
       offset + 46 + fileNameLength + extraLength + commentLength
     if (nextOffset > bytes.byteLength) {
       issues.push(
-        errorIssue('archive.invalid-central-entry', 'ZIP 目录项超出文件范围。'),
+        errorIssue(
+          'archive.invalid-central-entry',
+          'A ZIP central-directory entry is outside the file.',
+        ),
       )
       break
     }
@@ -130,7 +147,7 @@ export function preflightArchive(
       issues.push(
         errorIssue(
           'archive.invalid-filename-encoding',
-          'ZIP 文件名不是有效 UTF-8。',
+          'A ZIP filename is not valid UTF-8.',
         ),
       )
     }
@@ -142,7 +159,7 @@ export function preflightArchive(
         issues.push(
           errorIssue(
             'archive.duplicate-path',
-            'ZIP 包含规范化后重复的路径。',
+            'The ZIP contains duplicate normalized paths.',
             normalizedPath,
           ),
         )
@@ -152,7 +169,7 @@ export function preflightArchive(
       issues.push(
         errorIssue(
           'archive.unsafe-path',
-          'ZIP 包含不安全路径。',
+          'The ZIP contains an unsafe path.',
           name,
           cause instanceof Error ? cause.message : undefined,
         ),
@@ -161,14 +178,18 @@ export function preflightArchive(
 
     if ((flags & 0x0001) !== 0) {
       issues.push(
-        errorIssue('archive.encrypted-entry', '不支持 ZIP 加密 entry。', name),
+        errorIssue(
+          'archive.encrypted-entry',
+          'Encrypted ZIP entries are unsupported.',
+          name,
+        ),
       )
     }
     if (compressionMethod !== 0 && compressionMethod !== 8) {
       issues.push(
         errorIssue(
           'archive.unsupported-compression',
-          'ZIP 使用了不支持的压缩方式。',
+          'The ZIP uses an unsupported compression method.',
           name,
         ),
       )
@@ -177,7 +198,7 @@ export function preflightArchive(
       issues.push(
         errorIssue(
           'archive.entry-too-large',
-          '单个 entry 超过安全上限。',
+          'An entry exceeds the safety limit.',
           name,
         ),
       )
@@ -187,7 +208,7 @@ export function preflightArchive(
       issues.push(
         errorIssue(
           'archive.suspicious-compression-ratio',
-          'ZIP entry 压缩比异常。',
+          'A ZIP entry has a suspicious compression ratio.',
           name,
         ),
       )
@@ -208,7 +229,7 @@ export function preflightArchive(
     issues.push(
       errorIssue(
         'archive.central-directory-size-mismatch',
-        'ZIP central directory 声明大小与实际目录项不一致。',
+        'The ZIP central-directory size does not match its entries.',
       ),
     )
   }
@@ -217,13 +238,13 @@ export function preflightArchive(
     issues.push(
       errorIssue(
         'archive.total-too-large',
-        'ZIP 声明的总解压大小超过安全上限。',
+        'The declared total uncompressed size exceeds the safety limit.',
       ),
     )
   }
   validateLocalHeaders(bytes, entries, issues)
   if (issues.some((issue) => issue.severity === 'error')) {
-    throw new EpubOpenError('EPUB 未通过 ZIP 安全预检。', issues)
+    throw new EpubOpenError('The EPUB failed ZIP safety preflight.', issues)
   }
   return { entries, issues }
 }
@@ -237,10 +258,10 @@ export function openArchiveSafely(
   try {
     extracted = new Map(Object.entries(unzipSync(bytes)))
   } catch (cause) {
-    throw new EpubOpenError('EPUB 解压失败。', [
+    throw new EpubOpenError('The EPUB could not be extracted.', [
       errorIssue(
         'archive.extraction-failed',
-        'ZIP 通过目录预检但无法解压。',
+        'The ZIP passed directory preflight but could not be extracted.',
         undefined,
         cause instanceof Error ? cause.message : undefined,
       ),
@@ -255,13 +276,16 @@ export function openArchiveSafely(
       payload === undefined ||
       payload.byteLength !== metadata.uncompressedSize
     ) {
-      throw new EpubOpenError('ZIP 解压结果与目录记录不一致。', [
-        errorIssue(
-          'archive.size-mismatch',
-          'entry 解压大小与目录声明不一致。',
-          metadata.name,
-        ),
-      ])
+      throw new EpubOpenError(
+        'The extracted ZIP does not match its directory records.',
+        [
+          errorIssue(
+            'archive.size-mismatch',
+            'An extracted entry size does not match its directory declaration.',
+            metadata.name,
+          ),
+        ],
+      )
     }
     entries.set(metadata.normalizedPath, {
       originalData: payload,
@@ -277,7 +301,7 @@ export function openArchiveSafely(
   ) {
     issues.push({
       code: 'archive.invalid-mimetype',
-      message: '根目录 mimetype 缺失或内容不严格正确。',
+      message: 'The root mimetype is missing or its content is not exact.',
       severity: 'warning',
     })
   }
@@ -303,7 +327,7 @@ function validateLocalHeaders(
       issues.push(
         errorIssue(
           'archive.invalid-local-header',
-          'ZIP local header 无效。',
+          'A ZIP local header is invalid.',
           entry.name,
         ),
       )
@@ -313,7 +337,7 @@ function validateLocalHeaders(
       issues.push(
         errorIssue(
           'archive.duplicate-local-offset',
-          '多个 ZIP 目录项指向同一个 local header。',
+          'Multiple ZIP directory entries point to the same local header.',
           entry.name,
         ),
       )
@@ -335,7 +359,7 @@ function validateLocalHeaders(
       issues.push(
         errorIssue(
           'archive.header-mismatch',
-          'ZIP local header 与 central directory 不一致。',
+          'A ZIP local header disagrees with the central directory.',
           entry.name,
         ),
       )
@@ -347,7 +371,7 @@ function validateLocalHeaders(
       issues.push(
         errorIssue(
           'archive.overlapping-entry',
-          'ZIP local entry 范围重叠或越界。',
+          'ZIP local-entry ranges overlap or extend outside the file.',
           entry.name,
         ),
       )
@@ -360,7 +384,7 @@ function validateLocalHeaders(
         issues.push(
           errorIssue(
             'archive.header-name-mismatch',
-            'ZIP local header 与 central directory 文件名不一致。',
+            'A ZIP local-header filename disagrees with the central directory.',
             entry.name,
           ),
         )
@@ -369,7 +393,7 @@ function validateLocalHeaders(
       issues.push(
         errorIssue(
           'archive.invalid-local-filename',
-          'ZIP local header 文件名不是有效 UTF-8。',
+          'A ZIP local-header filename is not valid UTF-8.',
           entry.name,
         ),
       )
@@ -383,7 +407,8 @@ function validateLocalHeaders(
   ) {
     issues.push({
       code: 'archive.nonconforming-mimetype-header',
-      message: 'mimetype 不是首个 STORE local entry；打开后会继续保持只读。',
+      message:
+        'mimetype is not the first STORE local entry; the book will remain read-only after opening.',
       severity: 'warning',
     })
   }

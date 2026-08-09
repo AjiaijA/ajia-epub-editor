@@ -32,7 +32,7 @@ export async function exportEpubAsync(
         new ExportValidationError([
           {
             code: 'export.worker-crashed',
-            message: '浏览器后台导出任务异常终止。',
+            message: 'The browser export worker stopped unexpectedly.',
             severity: 'error',
           },
         ]),

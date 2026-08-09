@@ -20,7 +20,7 @@ export class ExportValidationError extends Error {
   readonly issues: readonly EpubIssue[]
 
   constructor(issues: readonly EpubIssue[]) {
-    super('EPUB 未通过导出前检查。')
+    super('The EPUB did not pass pre-export validation.')
     this.name = 'ExportValidationError'
     this.issues = issues
   }
@@ -42,7 +42,7 @@ export function exportEpubSession(session: EpubEditSession): ExportedEpub {
     if (path === 'mimetype') continue
     const expected = session.modifiedEntries.get(path) ?? entry.originalData
     if (!byteEqual(extracted.get(path), expected)) {
-      throw new Error(`导出后 payload 字节校验失败：${path}`)
+      throw new Error(`Post-export payload verification failed: ${path}`)
     }
   }
 

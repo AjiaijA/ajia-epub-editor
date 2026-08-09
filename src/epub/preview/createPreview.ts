@@ -45,7 +45,7 @@ export function createSandboxedPreview(
   options: PreviewOptions = {},
 ): PreviewResult {
   if (chapter.visualEditCapability === 'source-only') {
-    throw new Error('该章节已降级，不能生成可视预览。')
+    throw new Error('This chapter was downgraded and cannot be previewed.')
   }
   const document = parseXml(chapter.originalSource, chapter.archivePath)
   let blockedResourceCount = 0
@@ -110,7 +110,7 @@ export function createSandboxedPreview(
         element.setAttribute('data-epub-href', href)
         element.removeAttribute('href')
         element.setAttribute('aria-disabled', 'true')
-        element.setAttribute('title', '只读预览中已禁用链接')
+        element.setAttribute('title', 'Link disabled in read-only preview')
         blockedResourceCount += 1
       }
       continue

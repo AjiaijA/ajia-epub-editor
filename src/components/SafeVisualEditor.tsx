@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 
 import type { PreviewResult } from '../epub/preview/createPreview.js'
 import type { TextSegment } from '../epub/text/safeTextPatch.js'
+import { useI18n } from '../i18n.js'
 
 interface SafeVisualEditorProps {
   readonly onCommit: (segmentId: string, text: string) => boolean
@@ -35,6 +36,7 @@ export function SafeVisualEditor({
   segments,
   title,
 }: SafeVisualEditorProps) {
+  const { text } = useI18n()
   const frameRef = useRef<HTMLIFrameElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const segmentText = useMemo(
@@ -78,7 +80,12 @@ export function SafeVisualEditor({
       if (id === undefined) return
       if (!hasTextOnlyChildren(segment)) {
         resetSegment(segment)
-        onErrorRef.current('已阻止会改变 XHTML 结构的输入。')
+        onErrorRef.current(
+          text(
+            'Input that could change the XHTML structure was blocked.',
+            '已阻止会改变 XHTML 结构的输入。',
+          ),
+        )
         return
       }
       commitVisualTextOrRestore(
@@ -96,31 +103,51 @@ export function SafeVisualEditor({
         !selectionInside(document, segment)
       ) {
         event.preventDefault()
-        onErrorRef.current('安全编辑只允许在同一段文字内输入、删除或改字。')
+        onErrorRef.current(
+          text(
+            'Safe editing only allows typing, deleting, or replacing text within one segment.',
+            '安全编辑只允许在同一段文字内输入、删除或改字。',
+          ),
+        )
       }
     }
     const paste = (event: ClipboardEvent): void => {
       event.preventDefault()
       const segment = segmentFromEvent(event)
-      const text = event.clipboardData?.getData('text/plain')
+      const clipboardText = event.clipboardData?.getData('text/plain')
       if (
         segment === null ||
-        text === undefined ||
-        !replaceSelectionWithPlainText(document, segment, text)
+        clipboardText === undefined ||
+        !replaceSelectionWithPlainText(document, segment, clipboardText)
       ) {
-        onErrorRef.current('粘贴已被阻止；只能在同一文字段内粘贴纯文本。')
+        onErrorRef.current(
+          text(
+            'Paste was blocked. Only plain text can be pasted within one segment.',
+            '粘贴已被阻止；只能在同一文字段内粘贴纯文本。',
+          ),
+        )
         return
       }
       commit(segment)
     }
     const drop = (event: DragEvent): void => {
       event.preventDefault()
-      onErrorRef.current('安全编辑不允许拖放内容。')
+      onErrorRef.current(
+        text(
+          'Drag and drop is not available in safe editing.',
+          '安全编辑不允许拖放内容。',
+        ),
+      )
     }
     const keydown = (event: KeyboardEvent): void => {
       if (event.key === 'Enter') {
         event.preventDefault()
-        onErrorRef.current('安全编辑不能用回车创建新段落。')
+        onErrorRef.current(
+          text(
+            'Safe editing cannot create a new paragraph with Enter.',
+            '安全编辑不能用回车创建新段落。',
+          ),
+        )
       }
     }
     const compositionStart = (event: CompositionEvent): void => {
@@ -132,7 +159,12 @@ export function SafeVisualEditor({
       if (segment === null || id === undefined) return
       if (!hasTextOnlyChildren(segment)) {
         resetSegment(segment)
-        onErrorRef.current('已阻止会改变 XHTML 结构的输入。')
+        onErrorRef.current(
+          text(
+            'Input that could change the XHTML structure was blocked.',
+            '已阻止会改变 XHTML 结构的输入。',
+          ),
+        )
         return
       }
       onDraftChangeRef.current(id, segment.textContent)
@@ -174,7 +206,7 @@ export function SafeVisualEditor({
       ref={frameRef}
       sandbox="allow-same-origin"
       srcDoc={preview.html}
-      title={`${title}安全文字编辑`}
+      title={`${title} ${text('safe text editor', '安全文字编辑')}`}
     />
   )
 }

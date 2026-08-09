@@ -1,9 +1,8 @@
-# Ajia EPUB Editor V0.1 RC Deployment
+# Ajia EPUB Editor V0.1 Deployment
 
-This document describes a private static test deployment and rollback. It does
-not authorize a public release. EPUB files are processed in the browser; the
-site requires no application server, database, account, upload endpoint, or
-secret.
+This document describes the static production deployment and rollback process.
+EPUB files are processed in the browser; the site requires no application
+server, database, account, upload endpoint, or secret.
 
 ## Release inputs
 
@@ -15,7 +14,7 @@ npm run release:rc
 ```
 
 The deployable files are inside
-`artifacts/ajia-epub-editor-v0.1.0-rc.3.zip`. Verify its adjacent SHA-256 file
+`artifacts/ajia-epub-editor-v0.1.0.zip`. Verify its adjacent SHA-256 file
 before copying it to another machine. The ZIP root contains `index.html`,
 hashed assets, Workers, and `release.json`.
 
@@ -31,19 +30,17 @@ repeat the smoke checklist in `docs/compatibility.md`. Opening `index.html`
 directly with `file://` is unsupported because module Workers require an HTTP
 origin.
 
-## Unlinked ajia.site preview
+## Staged ajia.site preview
 
-Prefer an access-controlled path. If server access control is unavailable, an
-unlinked path is useful for testing but must not be described as private:
-anyone who knows the URL can reach it. Extract the RC into a new versioned
-directory; do not overwrite the previous version.
+Extract the candidate into a new versioned directory; do not overwrite the
+previous version. Verify the versioned URL before switching the stable route.
 For example, the hosting layout can be:
 
 ```text
 ajia.site/
   releases/
-    ajia-epub-editor-v0.1.0-rc.3/
-  epub-editor-rc -> releases/ajia-epub-editor-v0.1.0-rc.3/
+    ajia-epub-editor-v0.1.0/
+  epub-editor -> releases/ajia-epub-editor-v0.1.0/
 ```
 
 The build uses relative asset URLs and can be served below a subdirectory.

@@ -62,7 +62,7 @@ describe('body text search and replace', () => {
       chapter.archivePath,
       chapter.originalSource.replace('唯一章节', '新标题'),
     )
-    expect(() => replaceSearchResult(changed, result, '过期')).toThrow('失效')
+    expect(() => replaceSearchResult(changed, result, '过期')).toThrow('stale')
   })
 
   it('replaces all atomically and one undo/redo restores the whole operation', async () => {
@@ -127,7 +127,7 @@ describe('body text search and replace', () => {
     const beforeSources = new Map(changed.currentSources)
 
     expect(() => replaceAllSearchResults(changed, results, '节')).toThrow(
-      '失效',
+      'stale',
     )
     expect(changed.currentSources).toEqual(beforeSources)
   })

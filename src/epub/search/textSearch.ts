@@ -92,7 +92,7 @@ export function replaceSearchResult(
     session,
     [{ afterSource: patched.source, path: result.chapterPath }],
     'replace-current',
-    `替换 1 处正文：“${result.query}”`,
+    `Replace one body-text match: “${result.query}”`,
   )
 }
 
@@ -159,7 +159,7 @@ export function replaceAllSearchResults(
     session,
     changes,
     'replace-all',
-    `全部替换 ${String(results.length)} 处正文，涉及 ${String(byChapter.size)} 章`,
+    `Replace ${String(results.length)} body-text matches across ${String(byChapter.size)} chapters`,
   )
 }
 
@@ -188,5 +188,5 @@ function resolveResultSegment(
 }
 
 function staleSearchError(): Error {
-  return new Error('搜索结果已经失效，请重新搜索。')
+  return new Error('The search result is stale. Run the search again.')
 }

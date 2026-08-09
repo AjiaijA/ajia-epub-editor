@@ -6,25 +6,16 @@ Implement Ajia EPUB Editor according to `docs/product-requirements.md`.
 
 ## Current milestone
 
-Phases 0 through 4 are complete. The user authorized Phase 5 on 2026-08-08.
-The user later authorized an unlinked online test deployment at the product
-requirements URL and Thorium installation/testing. Calibre and Thorium are
-recorded as passed; Apple Books opens the edited fixture but remains a
-human-assisted detailed release gate. RC2 fixes safe external-only XHTML
-`DOCTYPE` compatibility found during real-book online testing. RC3 fixes safe
-deletion of an isolated whole text token and automatic recovery from rejected
-visual edits.
-Work only on Phase 5 until the release candidate is reviewed:
+Phases 0 through 5 and RC1–RC3 are complete. On 2026-08-09 the user approved
+the international V0.1 release: English-default/Chinese-optional UI, a formal
+ajia.site tools entry, a public GitHub repository, bilingual documentation,
+and ongoing synchronized maintenance. Calibre and Thorium passed; Apple Books
+opens an edited fixture.
 
-1. Finish plain-language errors, progress/cancellation, accessibility, and narrow-screen behavior.
-2. Add real-browser smoke coverage and release-candidate packaging.
-3. Complete README, DEPLOY, compatibility, and Phase 5 release documentation.
-4. Exercise all locally available reader/browser gates and record unavailable platform gates honestly.
-5. Run full preservation/export/EPUBCheck regressions and private CI.
-6. Produce a reversible, testable V0.1 release candidate for user review.
-
-Do not publicly deploy, publish a release, merge to main, add backend,
-telemetry, accounts, or AI without explicit user approval.
+Current work is V0.1 release and maintenance. Preserve the English-first
+international interface, complete both English and Chinese documentation for
+user-facing changes, and keep the site deployment, GitHub source, tags, and
+release assets synchronized.
 
 ## Non-negotiable constraints
 
@@ -36,7 +27,8 @@ telemetry, accounts, or AI without explicit user approval.
 - Do not rename files, normalize XML/CSS, re-encode media, or rebuild the EPUB from templates.
 - Do not execute EPUB scripts or request remote EPUB resources.
 - Do not bypass DRM or modify encrypted content.
-- Do not deploy, create a public repository, add telemetry, or expand product scope without explicit user approval.
+- Deployment and a public GitHub repository are authorized for this project.
+  Backend, telemetry, accounts, AI, and scope expansion remain unauthorized.
 
 ## Engineering boundaries
 

@@ -1,6 +1,18 @@
 # Architecture
 
-Status: V0.1 RC3 architecture updated on 2026-08-09.
+Status: V0.1 architecture updated on 2026-08-09.
+
+## International interface boundary
+
+English is the source and default language for application metadata, core
+errors, transaction summaries, and first-run UI. `src/i18n.tsx` owns the active
+`en`/`zh` locale, the local-only preference, interface selection, and Chinese
+translations for stable issue codes. React surfaces choose bilingual copy at
+render time. EPUB content, filenames, titles, and navigation labels are never
+translated or altered by the interface locale.
+
+The language preference is the only application value written to
+`localStorage`; book bytes and edit sessions remain memory-only.
 
 ## Phase 1 read pipeline
 

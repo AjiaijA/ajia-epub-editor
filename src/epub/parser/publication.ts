@@ -28,7 +28,7 @@ export function openEpubPublication(
     packagePath = locatePackagePath(opened.archive, issues)
   } catch (cause) {
     throw fatalOpenError(
-      '无法定位 EPUB package document。',
+      'The EPUB package document could not be located.',
       'container.invalid',
       cause,
       issues,
@@ -40,7 +40,7 @@ export function openEpubPublication(
     packageDocument = parsePackageDocument(opened.archive, packagePath, issues)
   } catch (cause) {
     throw fatalOpenError(
-      '无法解析 EPUB package document。',
+      'The EPUB package document could not be parsed.',
       'package.invalid',
       cause,
       issues,
@@ -58,7 +58,7 @@ export function openEpubPublication(
     if (!isChapterMediaType(item.mediaType)) {
       issues.push({
         code: 'chapter.unexpected-media-type',
-        message: `spine 项“${item.href}”不是 XHTML，已跳过预览。`,
+        message: `Spine item “${item.href}” is not XHTML and was skipped for preview.`,
         path: item.archivePath,
         severity: 'warning',
       })
@@ -75,7 +75,7 @@ export function openEpubPublication(
       issues.push({
         code: 'chapter.invalid-encoding',
         ...(cause instanceof Error ? { detail: cause.message } : {}),
-        message: `章节“${item.href}”不是有效 UTF-8，无法预览。`,
+        message: `Chapter “${item.href}” is not valid UTF-8 and cannot be previewed.`,
         path: item.archivePath,
         severity: 'warning',
       })
@@ -90,7 +90,7 @@ export function openEpubPublication(
       sourceEditCapability = 'encrypted'
       issues.push({
         code: 'chapter.encrypted',
-        message: `章节“${item.href}”标记为加密，不能预览或修改其内容。`,
+        message: `Chapter “${item.href}” is encrypted and cannot be previewed or edited.`,
         path: item.archivePath,
         severity: 'error',
       })
@@ -108,7 +108,7 @@ export function openEpubPublication(
           issues.push({
             code: 'chapter.visual-edit-readonly',
             ...(cause instanceof Error ? { detail: cause.message } : {}),
-            message: `章节“${item.href}”包含复杂内容，可预览但只允许源码编辑。`,
+            message: `Chapter “${item.href}” contains complex content; it can be previewed but only edited in source mode.`,
             path: item.archivePath,
             severity: 'info',
           })
@@ -118,7 +118,7 @@ export function openEpubPublication(
         issues.push({
           code: 'chapter.invalid-xhtml',
           ...(cause instanceof Error ? { detail: cause.message } : {}),
-          message: `章节“${item.href}”不是合法 XML，已降级且不生成预览。`,
+          message: `Chapter “${item.href}” is not valid XML and was downgraded without a preview.`,
           path: item.archivePath,
           severity: 'warning',
         })
@@ -186,7 +186,7 @@ function readEncryptedPaths(
         } catch {
           issues.push({
             code: 'encryption.unsafe-reference',
-            message: 'encryption.xml 包含不安全的资源路径。',
+            message: 'encryption.xml contains an unsafe resource path.',
             path: 'META-INF/encryption.xml',
             severity: 'error',
           })
@@ -195,7 +195,8 @@ function readEncryptedPaths(
     }
     issues.push({
       code: 'encryption.present',
-      message: '本书包含 encryption.xml；不会尝试解密或修改受保护内容。',
+      message:
+        'This book contains encryption.xml; protected content will not be decrypted or modified.',
       path: 'META-INF/encryption.xml',
       severity: 'warning',
     })
@@ -204,7 +205,7 @@ function readEncryptedPaths(
     issues.push({
       code: 'encryption.invalid',
       ...(cause instanceof Error ? { detail: cause.message } : {}),
-      message: 'encryption.xml 无法安全解析。',
+      message: 'encryption.xml could not be parsed safely.',
       path: 'META-INF/encryption.xml',
       severity: 'error',
     })

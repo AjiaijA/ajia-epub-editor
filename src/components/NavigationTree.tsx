@@ -1,4 +1,5 @@
 import type { NavigationItem } from '../models/publication.js'
+import { useI18n } from '../i18n.js'
 
 interface NavigationTreeProps {
   readonly activePath: string | null
@@ -15,8 +16,13 @@ export function NavigationTree({
   onSelect,
   selectedItemId,
 }: NavigationTreeProps) {
+  const { text } = useI18n()
+  const treeLabel = text('Contents', '目录')
   return (
-    <nav aria-label="书籍目录" className="navigation-tree">
+    <nav
+      aria-label={text('Book table of contents', '书籍目录')}
+      className="navigation-tree"
+    >
       <TreeLevel
         activePath={activePath}
         availablePaths={availablePaths}
@@ -24,6 +30,7 @@ export function NavigationTree({
         level={1}
         onSelect={onSelect}
         selectedItemId={selectedItemId}
+        treeLabel={treeLabel}
       />
     </nav>
   )
@@ -36,10 +43,14 @@ function TreeLevel({
   level,
   onSelect,
   selectedItemId,
-}: NavigationTreeProps & { readonly level: number }) {
+  treeLabel,
+}: NavigationTreeProps & {
+  readonly level: number
+  readonly treeLabel: string
+}) {
   return (
     <ul
-      aria-label={level === 1 ? '目录' : undefined}
+      aria-label={level === 1 ? treeLabel : undefined}
       role={level === 1 ? 'tree' : 'group'}
     >
       {items.map((item) => {
@@ -80,6 +91,7 @@ function TreeLevel({
                 level={level + 1}
                 onSelect={onSelect}
                 selectedItemId={selectedItemId}
+                treeLabel={treeLabel}
               />
             ) : null}
           </li>
