@@ -408,7 +408,7 @@ function validateLocalHeaders(
     issues.push({
       code: 'archive.nonconforming-mimetype-header',
       message:
-        'mimetype is not the first STORE local entry; the book will remain read-only after opening.',
+        'mimetype is not the first STORE local entry; opening will continue and export will write a conforming entry.',
       severity: 'warning',
     })
   }

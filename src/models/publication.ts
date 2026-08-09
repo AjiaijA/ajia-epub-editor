@@ -99,6 +99,7 @@ export interface NavigationModel {
 
 export interface PackageDocument {
   readonly epubVersion: '2' | '3' | 'unknown'
+  readonly fixedLayout: boolean
   readonly manifest: ReadonlyMap<string, ManifestItem>
   readonly packagePath: string
   readonly spine: readonly SpineItem[]

@@ -114,6 +114,37 @@ describe('safe XHTML text-patch spike', () => {
     )
   })
 
+  it('preserves full-width indentation and untouched whitespace-only nodes', () => {
+    const source =
+      '<html xmlns="http://www.w3.org/1999/xhtml"><body><p>　　正文<br/>　　</p></body></html>'
+    const segments = findEditableTextSegments(source)
+
+    expect(segments.map((segment) => segment.decodedText)).toEqual(['　　正文'])
+    const target = segments[0]
+    if (target === undefined) throw new Error('Indented text segment missing')
+
+    const result = applySafeTextPatch(source, target, '　　修订正文')
+
+    expect(result.source).toBe(
+      '<html xmlns="http://www.w3.org/1999/xhtml"><body><p>　　修订正文<br/>　　</p></body></html>',
+    )
+  })
+
+  it('maps text around XML self-closing elements and rejects HTML-style void tags', () => {
+    const valid =
+      '<html xmlns="http://www.w3.org/1999/xhtml"><body><p>前<br/>后<hr /></p></body></html>'
+
+    expect(
+      findEditableTextSegments(valid).map((segment) => segment.decodedText),
+    ).toEqual(['前', '后'])
+
+    const invalid =
+      '<html xmlns="http://www.w3.org/1999/xhtml"><body><p>前<br>后</p></body></html>'
+    expect(() => findEditableTextSegments(invalid)).toThrow(
+      'Opening and ending tag mismatch',
+    )
+  })
+
   it('refuses an internal DTD subset and custom entity declaration', () => {
     const source =
       '<!DOCTYPE html [<!ENTITY secret "unsafe">]><html><body>&secret;</body></html>'

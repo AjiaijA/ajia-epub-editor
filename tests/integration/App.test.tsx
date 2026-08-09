@@ -9,12 +9,17 @@ import {
   waitFor,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { strToU8 } from 'fflate'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { App } from '../../src/app/App.js'
+import {
+  extractArchive,
+  writeEpubArchive,
+} from '../../src/epub/archive/epubZip.js'
 import { buildFixtureArchive } from '../support/fixtureArchive.js'
 
-describe('V0.1 RC editing app', () => {
+describe('V0.1.1 editing app', () => {
   afterEach(() => {
     cleanup()
   })
@@ -86,13 +91,14 @@ describe('V0.1 RC editing app', () => {
       'sandbox',
       '',
     )
-    expect(screen.getByText(/尚无修改 · V0.1/u)).toBeVisible()
+    expect(screen.getByText(/尚无修改 · V0.1.1/u)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '查找替换' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '导出 EPUB' })).toBeEnabled()
 
     await user.click(screen.getByRole('button', { name: '查找替换' }))
+    expect(screen.getByText('正文查找')).toBeVisible()
     expect(screen.getByLabelText('查找正文')).toHaveFocus()
     await user.type(screen.getByLabelText('查找正文'), '阶段一测试文字')
     expect(await screen.findByText('找到 1 处，涉及 1 章。')).toBeVisible()
@@ -118,5 +124,52 @@ describe('V0.1 RC editing app', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: '查找替换' })).toHaveFocus(),
     )
+  })
+
+  it('keeps preview and source available while disabling safe edit for fixed layout', async () => {
+    const entries = new Map(
+      extractArchive(await buildFixtureArchive('epub3-nav')),
+    )
+    const packagePath = 'Books/内容/package.opf'
+    const packageSource = new TextDecoder().decode(entries.get(packagePath))
+    entries.set(
+      packagePath,
+      strToU8(
+        packageSource.replace(
+          '<meta property="dcterms:modified">',
+          '<meta property="rendition:layout">pre-paginated</meta>\n    <meta property="dcterms:modified">',
+        ),
+      ),
+    )
+    const bytes = writeEpubArchive(entries)
+    const fileBuffer = bytes.slice().buffer
+    const file = new File([fileBuffer], 'fixed-layout.epub', {
+      type: 'application/epub+zip',
+    })
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: () => Promise.resolve(fileBuffer),
+    })
+    const user = userEvent.setup()
+    render(<App />)
+
+    const input = document.querySelector('input[type="file"]')
+    if (!(input instanceof HTMLInputElement))
+      throw new Error('File input missing')
+    fireEvent.change(input, { target: { files: [file] } })
+
+    expect(
+      await screen.findByRole('heading', { name: '阶段一 EPUB 3 测试书' }),
+    ).toBeVisible()
+    expect(screen.getByRole('tab', { name: 'Safe edit' })).toBeDisabled()
+    expect(screen.getByRole('tab', { name: 'Preview' })).toBeEnabled()
+    expect(screen.getByRole('tab', { name: 'XHTML Source' })).toBeEnabled()
+    expect(
+      screen.getByText(
+        'This publication declares fixed layout. Safe editing is disabled; use Preview or XHTML Source.',
+      ),
+    ).toBeVisible()
+
+    await user.click(screen.getByRole('tab', { name: 'XHTML Source' }))
+    expect(screen.getByLabelText('XHTML source editor')).toBeVisible()
   })
 })

@@ -174,7 +174,7 @@ export function parsePackageDocument(
     issues.push({
       code: 'package.fixed-layout',
       message:
-        'This publication declares fixed layout and is limited to downgraded read-only viewing.',
+        'This publication declares fixed layout. Safe editing is disabled; use Preview or XHTML Source.',
       path: packagePath,
       severity: 'warning',
     })
@@ -182,6 +182,7 @@ export function parsePackageDocument(
 
   return {
     epubVersion,
+    fixedLayout,
     manifest,
     packagePath,
     spine,

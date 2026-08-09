@@ -69,7 +69,7 @@ const CHINESE_ISSUE_MESSAGES: Readonly<Record<string, string>> = {
   'archive.multi-disk': '不支持分卷 ZIP。',
   'archive.missing-central-directory': '找不到 ZIP 中央目录。',
   'archive.nonconforming-mimetype-header':
-    'mimetype 不是第一个未压缩条目，本书将保持只读。',
+    'mimetype 不是第一个未压缩条目；仍会继续打开，导出时将写入符合规范的条目。',
   'archive.overlapping-entry': 'ZIP 条目范围重叠或越界。',
   'archive.size-mismatch': 'ZIP 条目解压大小与目录声明不一致。',
   'archive.suspicious-compression-ratio': 'ZIP 条目压缩比异常。',
@@ -112,7 +112,8 @@ const CHINESE_ISSUE_MESSAGES: Readonly<Record<string, string>> = {
     'NAV 与 NCX 目标不完全一致，阅读目录优先采用 NAV。',
   'navigation.spine-fallback': '未发现标准目录，当前按阅读顺序显示。',
   'open.unexpected': '无法打开这个 EPUB。',
-  'package.fixed-layout': '本书声明为固定版式，仅提供降级只读浏览。',
+  'package.fixed-layout':
+    '本书声明为固定版式，已关闭安全编辑；请使用预览或 XHTML 源码。',
   'package.unknown-version': '无法识别 EPUB 版本。',
   'spine.missing-manifest-item': 'spine 条目没有对应的 manifest item。',
   'toc.label-not-unique': '无法唯一定位该目录文字，未修改此目录来源。',

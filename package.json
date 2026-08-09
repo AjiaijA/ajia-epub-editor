@@ -1,6 +1,6 @@
 {
   "name": "ajia-epub-editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first, preserve-first browser editor for safe text corrections in EPUB 2 and EPUB 3 books",
   "private": true,
   "license": "MIT",
