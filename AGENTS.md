@@ -11,7 +11,9 @@ The user later authorized an unlinked online test deployment at the product
 requirements URL and Thorium installation/testing. Calibre and Thorium are
 recorded as passed; Apple Books opens the edited fixture but remains a
 human-assisted detailed release gate. RC2 fixes safe external-only XHTML
-`DOCTYPE` compatibility found during real-book online testing.
+`DOCTYPE` compatibility found during real-book online testing. RC3 fixes safe
+deletion of an isolated whole text token and automatic recovery from rejected
+visual edits.
 Work only on Phase 5 until the release candidate is reviewed:
 
 1. Finish plain-language errors, progress/cancellation, accessibility, and narrow-screen behavior.

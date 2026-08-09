@@ -84,6 +84,15 @@ Composition ends and focus/mode/chapter changes flush pending text through the
 same stale-ID, XML, and fingerprint checks. The application reads only
 `textContent`; iframe `innerHTML` is never authoritative or saved.
 
+If a visual commit is rejected, the pending draft is cleared, the editable
+segment is immediately restored from the authoritative session text, and the
+iframe revision is reset. Mode and chapter navigation therefore remain usable;
+the user sees a dismissible Chinese recovery message instead of a raw internal
+exception. Deleting a complete isolated text token to empty is allowed only
+when the exact source prefix/suffix and a markup-only structural fingerprint
+prove that no XML tag, attribute, comment, processing instruction, or CDATA was
+changed.
+
 ## Search, replacement, and navigation controls
 
 Search consumes verified body text segments only. It does not index element
@@ -107,8 +116,10 @@ entry bytes and never operates on preview HTML.
   patch belongs.
 - Replacement text is XML-escaped and the complete result must parse before it
   is returned.
-- A structural fingerprint must match before and after the patch; the DOM used
-  for validation is never serialized back to source.
+- A full structural fingerprint must match before and after a non-empty patch.
+  For an empty whole-token deletion only, a markup fingerprint must match and
+  exact non-target source bytes must remain unchanged. The DOM used for
+  validation is never serialized back to source.
 - External-only and simple `DOCTYPE` declarations are accepted only after they
   are masked in a same-length parse copy; they remain byte-exact in source.
   Internal subsets and custom entity declarations stay outside the safe-edit

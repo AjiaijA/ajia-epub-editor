@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  commitVisualTextOrRestore,
   isAllowedVisualInput,
   replaceSelectionWithPlainText,
 } from '../../src/components/SafeVisualEditor.js'
@@ -50,5 +51,15 @@ describe('safe visual input policy', () => {
     selection?.addRange(range)
 
     expect(replaceSelectionWithPlainText(document, first, '跨段')).toBe(false)
+  })
+
+  it('restores the authoritative text immediately when a commit is rejected', () => {
+    const segment = document.createElement('span')
+    segment.textContent = ''
+
+    expect(
+      commitVisualTextOrRestore(segment, 'segment-1', 'J', () => false),
+    ).toBe(false)
+    expect(segment.textContent).toBe('J')
   })
 })

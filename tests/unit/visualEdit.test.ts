@@ -87,6 +87,54 @@ describe('safe visual text editing', () => {
     )
   })
 
+  it('commits deletion of an isolated text token and keeps later edits usable', async () => {
+    const publication = openEpubPublication(
+      await buildFixtureArchive('epub2-ncx'),
+      'visual-delete.epub',
+    )
+    const chapter = publication.chapters[0]
+    if (chapter === undefined) throw new Error('Fixture chapter missing')
+    const session = createEditSession(publication)
+    const original = getChapterSource(session, chapter.archivePath)
+    const seeded = original.replace(
+      '<body>',
+      '<body><p><big><span>J</span></big>1970年，<em>叔叔</em>来访。</p>',
+    )
+    const seededSession = {
+      ...session,
+      currentSources: new Map([[chapter.archivePath, seeded]]),
+    }
+    const isolated = getChapterTextSegments(
+      seededSession,
+      chapter.archivePath,
+    ).find((segment) => segment.decodedText === 'J')
+    if (isolated === undefined) throw new Error('Isolated token missing')
+
+    const deleted = commitVisualText(
+      seededSession,
+      chapter.archivePath,
+      isolated.id,
+      '',
+    )
+    expect(getChapterSource(deleted, chapter.archivePath)).toContain(
+      '<big><span></span></big>1970年，<em>叔叔</em>来访。',
+    )
+    const later = getChapterTextSegments(deleted, chapter.archivePath).find(
+      (segment) => segment.decodedText === '叔叔',
+    )
+    if (later === undefined) throw new Error('Later token missing')
+    const edited = commitVisualText(
+      deleted,
+      chapter.archivePath,
+      later.id,
+      '姨父',
+    )
+    expect(getChapterSource(edited, chapter.archivePath)).toContain(
+      '<big><span></span></big>1970年，<em>姨父</em>来访。',
+    )
+    expect(getChapterSource(edited, chapter.archivePath)).not.toContain('>J<')
+  })
+
   it('downgrades script-driven content from safe visual mapping', () => {
     expect(() =>
       findSafeVisualTextSegments(

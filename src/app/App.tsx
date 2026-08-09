@@ -45,6 +45,7 @@ export function App() {
   const [draft, setDraft] = useState('')
   const [sourceError, setSourceError] = useState<string | null>(null)
   const [visualError, setVisualError] = useState<string | null>(null)
+  const [visualResetRevision, setVisualResetRevision] = useState(0)
   const [exportIssues, setExportIssues] = useState<readonly EpubIssue[]>([])
   const [exporting, setExporting] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -172,6 +173,7 @@ export function App() {
     setDraft('')
     setSourceError(null)
     setVisualError(null)
+    setVisualResetRevision(0)
     setExportIssues([])
     setSearchOpen(false)
     setSelectedTocId(null)
@@ -179,7 +181,7 @@ export function App() {
   }
 
   function commitDraft(sourceSession: EpubEditSession): EpubEditSession | null {
-    if (mode === 'visual') return flushVisualDraft(sourceSession)
+    if (mode === 'visual') return flushVisualDraft(sourceSession).session
     if (activeChapter === null || mode !== 'source') return sourceSession
     const savedSource = getChapterSource(
       sourceSession,
@@ -209,11 +211,14 @@ export function App() {
     }
   }
 
-  function flushVisualDraft(
-    sourceSession: EpubEditSession,
-  ): EpubEditSession | null {
+  function flushVisualDraft(sourceSession: EpubEditSession): {
+    readonly accepted: boolean
+    readonly session: EpubEditSession
+  } {
     const pending = pendingVisualRef.current
-    if (pending === null || activeChapter === null) return sourceSession
+    if (pending === null || activeChapter === null) {
+      return { accepted: true, session: sourceSession }
+    }
     try {
       const nextSession = commitVisualText(
         sourceSession,
@@ -226,14 +231,14 @@ export function App() {
       setDraft(getChapterSource(nextSession, activeChapter.archivePath))
       setVisualError(null)
       setExportIssues([])
-      return nextSession
-    } catch (cause) {
+      return { accepted: true, session: nextSession }
+    } catch {
+      pendingVisualRef.current = null
+      setVisualResetRevision((revision) => revision + 1)
       setVisualError(
-        cause instanceof Error
-          ? cause.message
-          : '安全文字修改失败，请切换源码模式检查。',
+        '这次修改未保存，原文字已恢复；您可以继续操作。若要改变标签结构，请使用 XHTML 源码模式。',
       )
-      return null
+      return { accepted: false, session: sourceSession }
     }
   }
 
@@ -265,10 +270,10 @@ export function App() {
     }
   }
 
-  function applyVisualEdit(segmentId: string, text: string): void {
-    if (session === null) return
+  function applyVisualEdit(segmentId: string, text: string): boolean {
+    if (session === null) return false
     pendingVisualRef.current = { segmentId, text }
-    flushVisualDraft(session)
+    return flushVisualDraft(session).accepted
   }
 
   function showSource(): void {
@@ -629,9 +634,20 @@ export function App() {
           </div>
 
           {visualError === null ? null : (
-            <div className="source-error" role="alert">
-              <strong>安全编辑提示</strong>
-              <span>{visualError}</span>
+            <div className="source-error visual-error" role="alert">
+              <div>
+                <strong>安全编辑提示</strong>
+                <span>{visualError}</span>
+              </div>
+              <button
+                aria-label="关闭安全编辑提示"
+                onClick={() => {
+                  setVisualError(null)
+                }}
+                type="button"
+              >
+                关闭提示
+              </button>
             </div>
           )}
 
@@ -711,7 +727,7 @@ export function App() {
             activeChapter !== null &&
             preview !== null ? (
             <SafeVisualEditor
-              key={`${activeChapter.archivePath}:${String(readySession.chapterRevisions.get(activeChapter.archivePath) ?? 0)}`}
+              key={`${activeChapter.archivePath}:${String(readySession.chapterRevisions.get(activeChapter.archivePath) ?? 0)}:${String(visualResetRevision)}`}
               onCommit={applyVisualEdit}
               onDraftChange={(segmentId, text) => {
                 pendingVisualRef.current = { segmentId, text }

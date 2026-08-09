@@ -13,7 +13,7 @@ test('V0.1 RC edits, searches, undoes, exports, and stays local', async ({
   page.on('request', (request) => requests.push(request.url()))
   await page.goto('./')
   const appOrigin = new URL(page.url()).origin
-  await expect(page.getByText('V0.1 RC2 · 本地测试版本')).toBeVisible()
+  await expect(page.getByText('V0.1 RC3 · 本地测试版本')).toBeVisible()
 
   await page
     .locator('input[type="file"]')

@@ -148,7 +148,10 @@ export function applySafeTextPatch(
 
   assertWellFormedXml(patched)
   const afterFingerprint = createStructuralFingerprint(patched)
-  if (beforeFingerprint !== afterFingerprint) {
+  const isVerifiedEmptyTextRemoval =
+    replacement.length === 0 &&
+    createMarkupFingerprint(source) === createMarkupFingerprint(patched)
+  if (beforeFingerprint !== afterFingerprint && !isVerifiedEmptyTextRemoval) {
     throw new Error('Safe text patch changed the XML structure')
   }
 
@@ -159,7 +162,20 @@ export function applySafeTextPatch(
   }
 }
 
+/**
+ * Fingerprints all XML structure that can be authored as markup while ignoring
+ * text nodes. This is used only for the empty-replacement boundary: XML parsers
+ * omit an emptied text node even though the source patch did not alter markup.
+ */
+export function createMarkupFingerprint(source: string): string {
+  return createFingerprint(source, false)
+}
+
 export function createStructuralFingerprint(source: string): string {
+  return createFingerprint(source, true)
+}
+
+function createFingerprint(source: string, includeTextNodes: boolean): string {
   const document = parseXml(source)
   const records: string[] = []
 
@@ -189,8 +205,10 @@ export function createStructuralFingerprint(source: string): string {
         break
       }
       case 3:
-        // Preserve text-node count and position while intentionally excluding values.
-        records.push(JSON.stringify(['text']))
+        if (includeTextNodes) {
+          // Preserve text-node count and position while excluding values.
+          records.push(JSON.stringify(['text']))
+        }
         break
       case 4:
         records.push(JSON.stringify(['cdata', node.nodeValue ?? '']))

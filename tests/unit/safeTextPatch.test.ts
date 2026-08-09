@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   applySafeTextPatch,
+  createMarkupFingerprint,
   createStructuralFingerprint,
   findEditableTextSegments,
 } from '../../src/epub/text/safeTextPatch.js'
@@ -67,6 +68,33 @@ describe('safe XHTML text-patch spike', () => {
     expect(() =>
       applySafeTextPatch(source.replace('Before', 'Changed'), target, 'x'),
     ).toThrow('stale')
+  })
+
+  it('deletes an isolated whole text token without changing its inline markup', () => {
+    const source =
+      '<html xmlns="http://www.w3.org/1999/xhtml"><body><p class="outer"><span class="one"><big class="two"><span class="three">J</span></big>1970年1月4日，<em>保留标签</em>与其余正文。</span></p></body></html>'
+    const target = findEditableTextSegments(source).find(
+      (segment) => segment.decodedText === 'J',
+    )
+    expect(target).toBeDefined()
+    if (target === undefined) throw new Error('Isolated token missing')
+
+    const beforeMarkup = createMarkupFingerprint(source)
+    const beforeStructure = createStructuralFingerprint(source)
+    const result = applySafeTextPatch(source, target, '')
+
+    expect(result.escapedReplacement).toBe('')
+    expect(result.source).toBe(
+      source.slice(0, target.start) + source.slice(target.end),
+    )
+    expect(result.source).toContain(
+      '<big class="two"><span class="three"></span></big>1970年1月4日，',
+    )
+    expect(createMarkupFingerprint(result.source)).toBe(beforeMarkup)
+    expect(createStructuralFingerprint(result.source)).not.toBe(beforeStructure)
+    expect(
+      findEditableTextSegments(result.source).map((item) => item.decodedText),
+    ).toEqual(['1970年1月4日，', '保留标签', '与其余正文。'])
   })
 
   it('patches text around a safe external XHTML doctype without changing it', () => {

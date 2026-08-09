@@ -39,7 +39,7 @@ describe('V0.1 RC editing app', () => {
       'sandbox',
       '',
     )
-    expect(screen.getByText(/尚无修改 · V0.1 RC2/u)).toBeVisible()
+    expect(screen.getByText(/尚无修改 · V0.1 RC3/u)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '查找替换' })).toBeEnabled()

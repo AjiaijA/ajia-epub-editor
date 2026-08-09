@@ -4,7 +4,7 @@ import type { PreviewResult } from '../epub/preview/createPreview.js'
 import type { TextSegment } from '../epub/text/safeTextPatch.js'
 
 interface SafeVisualEditorProps {
-  readonly onCommit: (segmentId: string, text: string) => void
+  readonly onCommit: (segmentId: string, text: string) => boolean
   readonly onDraftChange: (segmentId: string, text: string) => void
   readonly onError: (message: string) => void
   readonly preview: PreviewResult
@@ -81,8 +81,12 @@ export function SafeVisualEditor({
         onErrorRef.current('已阻止会改变 XHTML 结构的输入。')
         return
       }
-      const text = segment.textContent
-      if (text !== segmentText.get(id)) onCommitRef.current(id, text)
+      commitVisualTextOrRestore(
+        segment,
+        id,
+        segmentText.get(id) ?? '',
+        onCommitRef.current,
+      )
     }
     const beforeInput = (event: InputEvent): void => {
       const segment = segmentFromEvent(event)
@@ -173,6 +177,19 @@ export function SafeVisualEditor({
       title={`${title}安全文字编辑`}
     />
   )
+}
+
+export function commitVisualTextOrRestore(
+  segment: HTMLElement,
+  segmentId: string,
+  originalText: string,
+  onCommit: (segmentId: string, text: string) => boolean,
+): boolean {
+  const text = segment.textContent
+  if (text === originalText) return true
+  if (onCommit(segmentId, text)) return true
+  segment.textContent = originalText
+  return false
 }
 
 function hasTextOnlyChildren(element: HTMLElement): boolean {

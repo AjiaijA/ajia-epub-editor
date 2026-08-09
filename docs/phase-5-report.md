@@ -1,8 +1,8 @@
-# Phase 5 / V0.1 RC2 Report
+# Phase 5 / V0.1 RC3 Report
 
 Date: 2026-08-09
 Branch: `agent/phase-5-v0.1-rc`
-Version: `0.1.0-rc.2`
+Version: `0.1.0-rc.3`
 
 ## Outcome
 
@@ -24,10 +24,17 @@ all such chapters; RC2 masks the declaration only in the in-memory parse copy,
 never loads the external DTD, retains the exact authoritative source, and still
 rejects internal subsets and custom entity declarations.
 
+RC3 responds to the subsequent safe-editor report. A whole isolated text token
+may now be deleted to empty when the exact non-target source and complete XML
+markup fingerprint remain unchanged. If any visual commit is rejected, the
+draft is discarded, authoritative text is restored immediately, navigation is
+left usable, and a dismissible Chinese recovery message replaces the internal
+English exception.
+
 ## Verification evidence
 
-- 17 Vitest files and 55 tests pass locally. Statement coverage is 72.61%,
-  branch coverage 64.01%, function coverage 75.17%, and line coverage 75.29%.
+- 17 Vitest files and 60 tests pass locally. Statement coverage is 72.73%,
+  branch coverage 64.33%, function coverage 74.91%, and line coverage 75.44%.
 - The Playwright Chromium flow opens a self-authored EPUB 2, renames NCX with a
   special character, performs Undo/Redo, builds a background whole-book index,
   replaces XML-special text, exports, checks the binary mimetype header,
@@ -47,6 +54,10 @@ rejects internal subsets and custom entity declarations.
   editing and the SVG cover remains previewable/read-only. The UI displayed
   chapter 006, whole-book search found its text, and an in-memory edit/export
   changed only that chapter before reopening successfully.
+- The RC3 real-book regression deleted the isolated `J` token in
+  `Dragon_Thunder_split_010.html`, then changed a later “叔叔” token to “姨父”.
+  The `J` stayed deleted and the 903,633-byte in-memory export reopened with the
+  edited source exact; the original book was not written or uploaded.
 - Private CI run `31257502823` passed the committed candidate in 1m43s,
   including Linux Chromium E2E, release packaging, pinned EPUBCheck 5.3.0, and
   the zero-vulnerability audit.

@@ -1,6 +1,6 @@
 # Architecture
 
-Status: V0.1 RC2 architecture updated on 2026-08-09.
+Status: V0.1 RC3 architecture updated on 2026-08-09.
 
 ## Phase 1 read pipeline
 
@@ -93,7 +93,13 @@ invalidates all previous IDs and offsets.
 
 The structural fingerprint retains element/namespace hierarchy, every
 attribute value, comments, processing instructions, CDATA, and text-node
-positions/count while excluding only text values.
+positions/count while excluding only text values. XML parsers omit a text node
+when its complete token is deleted. For that one empty-replacement case, the
+patch is accepted only when the exact source prefix/suffix are unchanged, the
+replacement introduces zero bytes, the complete result parses, and a second
+markup fingerprint proves that all elements, attributes, comments, processing
+instructions, and CDATA remain identical. All non-empty edits still require the
+full text-node-position fingerprint to match.
 
 ### Phase 4 search and transaction authority
 
@@ -183,9 +189,11 @@ Only the selected source range is replaced. Replacement text is escaped for
 `&`, `<`, and `>`, after which the complete XHTML is parsed again as XML. A
 structure fingerprint made from element hierarchy, namespace URI/local name,
 sorted attribute namespace/name/value triples, comments, processing
-instructions, and CDATA must remain identical. Tests separately prove that the
-entire prefix and suffix around the target range are byte-for-byte unchanged,
-which covers all markup and all non-target text.
+instructions, CDATA, and text-node positions must remain identical. A complete
+text-token deletion may remove that one DOM text node; it is accepted only
+under the narrower markup-fingerprint rule described above. Tests separately
+prove that the entire prefix and suffix around the target range are
+byte-for-byte unchanged, which covers all markup and all non-target text.
 
 The XML DOM is used only for validation and fingerprinting. It is never
 serialized and is not a write source. The preview DOM remains outside this

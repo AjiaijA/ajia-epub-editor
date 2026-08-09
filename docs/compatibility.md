@@ -1,9 +1,10 @@
 # Compatibility
 
-Status: V0.1 RC2 deployed and verified online on 2026-08-09; Calibre 9.11 and
-Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
+Status: V0.1 RC3 candidate verified locally on 2026-08-09; RC2 remains deployed
+until the atomic RC3 switch. Calibre 9.11 and Thorium 3.4.0 passed, and Apple
+Books opens the RC1 edited smoke fixture.
 
-## V0.1 RC2 application matrix
+## V0.1 RC3 application matrix
 
 | Surface                  | Evidence                                                   | Result       |
 | ------------------------ | ---------------------------------------------------------- | ------------ |
@@ -50,6 +51,8 @@ Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 | Complex script/SVG/MathML  | Downgrades to preview/source editing                             | Pass   |
 | Visual export round trip   | Edited XHTML reopens; every clean entry remains byte-identical   | Pass   |
 | Chromium local interaction | Edit → preview → source shows escaped text and one dirty entry   | Pass   |
+| Isolated token deletion    | Empty `J` token removes no markup; a later edit remains usable   | Pass   |
+| Commit rejection recovery  | Rejected draft restores authoritative text immediately           | Pass   |
 
 ## Phase 2 source and export matrix
 
@@ -125,6 +128,13 @@ replacement/export/reopen test changed only
 `OEBPS/Text/Dragon_Thunder_split_006.html`; every clean payload remained exact,
 the exported book reopened with zero invalid-XHTML issues, and no copy of the
 user book was written or uploaded.
+
+RC3 additionally reproduces the reported chapter-five edge case at
+`OEBPS/Text/Dragon_Thunder_split_010.html`: the isolated `<span>J</span>` text
+token was deleted to an empty span, a later “叔叔” token was changed to “姨父”,
+the `J` did not reappear, and the 903,633-byte in-memory export reopened with
+the edited chapter source exact. The original user file was neither changed
+nor uploaded.
 
 ## EPUBCheck gate
 
