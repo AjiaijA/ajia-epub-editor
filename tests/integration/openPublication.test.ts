@@ -39,6 +39,13 @@ describe('open EPUB publication', () => {
       label: '唯一章节',
       normalizedTarget: 'OEBPS/text/chapter.xhtml',
     })
+    expect(publication.chapters[0]?.visualEditCapability).toBe('safe')
+    expect(publication.chapters[0]?.originalSource).toContain(
+      '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"',
+    )
+    expect(publication.issues.map((issue) => issue.code)).not.toContain(
+      'chapter.invalid-xhtml',
+    )
   })
 
   it('falls back to spine order when no NAV or NCX exists', async () => {

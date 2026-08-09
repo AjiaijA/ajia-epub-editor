@@ -1,8 +1,8 @@
-# Phase 5 / V0.1 RC1 Report
+# Phase 5 / V0.1 RC2 Report
 
-Date: 2026-08-08
+Date: 2026-08-09
 Branch: `agent/phase-5-v0.1-rc`
-Version: `0.1.0-rc.1`
+Version: `0.1.0-rc.2`
 
 ## Outcome
 
@@ -18,10 +18,16 @@ deployment guidance, and explicit rollback instructions. A later user-approved,
 unlinked online test deployment was added at `ajia.site`; no backend, upload,
 telemetry, account, AI, public release, PR, or merge was added.
 
+RC2 responds to real-book online testing with a Calibre-generated EPUB 2. Its
+48 XHTML chapters use the standard external XHTML 1.1 `DOCTYPE`. RC1 rejected
+all such chapters; RC2 masks the declaration only in the in-memory parse copy,
+never loads the external DTD, retains the exact authoritative source, and still
+rejects internal subsets and custom entity declarations.
+
 ## Verification evidence
 
-- 17 Vitest files and 54 tests pass locally. Statement coverage is 72.27%,
-  branch coverage 63.43%, function coverage 74.74%, and line coverage 75%.
+- 17 Vitest files and 55 tests pass locally. Statement coverage is 72.61%,
+  branch coverage 64.01%, function coverage 75.17%, and line coverage 75.29%.
 - The Playwright Chromium flow opens a self-authored EPUB 2, renames NCX with a
   special character, performs Undo/Redo, builds a background whole-book index,
   replaces XML-special text, exports, checks the binary mimetype header,
@@ -33,10 +39,14 @@ telemetry, account, AI, public release, PR, or merge was added.
   static deployable files plus release metadata.
 - Chrome 151 passed the Playwright flow and an independent in-app browser
   visual inspection of the built static release.
-- `npm run release:rc`, dependency audit, and repeat packaging pass locally.
-  The dependency audit reports zero vulnerabilities. Two consecutive package
-  runs produced the same SHA-256:
-  `2a48d2778430041b86604d4c860443992babdc6d4a9cf2830a4ffb1a303e50e5`.
+- `npm run release:rc` and repeat packaging pass locally. Two consecutive RC2
+  package runs produced the same SHA-256:
+  `627cec14dbe9eb827b16d0688da45ed9234f019a904e96b1f208d7f1697aabe9`.
+- A read-only test with the user-provided `龙之雷.epub` opened all 48 chapters
+  with zero invalid-XHTML issues. Forty-seven chapters support safe visual
+  editing and the SVG cover remains previewable/read-only. The UI displayed
+  chapter 006, whole-book search found its text, and an in-memory edit/export
+  changed only that chapter before reopening successfully.
 - Private CI run `31257502823` passed the committed candidate in 1m43s,
   including Linux Chromium E2E, release packaging, pinned EPUBCheck 5.3.0, and
   the zero-vulnerability audit.
@@ -60,6 +70,10 @@ reported success on 2026-08-08. Apple Books is now the only remaining native
 reader promotion gate; the self-authored `epub2-reader-smoke.epub` and a fixed
 `epub2-reader-smoke-edited.epub` are provided for that test. This RC is testable
 online but is not represented as the final public V0.1 release.
+
+On 2026-08-09 the user confirmed that Apple Books opens the edited fixture.
+The detailed title, TOC, edited-body, and close/reopen confirmation is still
+pending, so Apple Books remains a partial pass.
 
 ## Residual risks
 

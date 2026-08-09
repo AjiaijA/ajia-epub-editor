@@ -15,7 +15,7 @@ npm run release:rc
 ```
 
 The deployable files are inside
-`artifacts/ajia-epub-editor-v0.1.0-rc.1.zip`. Verify its adjacent SHA-256 file
+`artifacts/ajia-epub-editor-v0.1.0-rc.2.zip`. Verify its adjacent SHA-256 file
 before copying it to another machine. The ZIP root contains `index.html`,
 hashed assets, Workers, and `release.json`.
 
@@ -42,8 +42,8 @@ For example, the hosting layout can be:
 ```text
 ajia.site/
   releases/
-    ajia-epub-editor-v0.1.0-rc.1/
-  epub-editor-rc -> releases/ajia-epub-editor-v0.1.0-rc.1/
+    ajia-epub-editor-v0.1.0-rc.2/
+  epub-editor-rc -> releases/ajia-epub-editor-v0.1.0-rc.2/
 ```
 
 The build uses relative asset URLs and can be served below a subdirectory.

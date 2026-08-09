@@ -1,6 +1,6 @@
 # Security
 
-Status: V0.1 RC1 archive intake, isolated editing, background search, reversible transactions, and release controls implemented.
+Status: V0.1 RC2 archive intake, isolated editing, background search, reversible transactions, and release controls implemented.
 
 ## Archive gate
 
@@ -54,10 +54,14 @@ book-content logging path.
 ## Source editing and export
 
 Source edits are accepted only for unencrypted spine XHTML. Every commit must
-parse as XML, reject `DOCTYPE`, and retain an XHTML `html` root. Validation is
-atomic: malformed drafts stay in the editor and never enter authoritative
-session bytes. UTF-8 BOM state is preserved, and the original archive entry is
-never mutated.
+parse as XML and retain an XHTML `html` root. A simple or external-only
+`DOCTYPE` is masked with same-length whitespace in the in-memory parse copy, so
+the parser never loads a DTD while source offsets and the authoritative source
+remain exact. Internal DTD subsets, custom entity declarations, multiple
+declarations, and malformed declarations are rejected. Validation is atomic:
+malformed drafts stay in the editor and never enter authoritative session
+bytes. UTF-8 BOM state is preserved, and the original archive entry is never
+mutated.
 
 Pre-export validation blocks known structural/open errors, missing declared
 resources, unsafe archive-local references, invalid dirty XHTML, protected
@@ -105,8 +109,10 @@ entry bytes and never operates on preview HTML.
   is returned.
 - A structural fingerprint must match before and after the patch; the DOM used
   for validation is never serialized back to source.
-- `DOCTYPE` is rejected at this safe-edit boundary. This avoids custom/external
-  entity behavior that cannot be mapped safely by the Phase 0 tokenizer.
+- External-only and simple `DOCTYPE` declarations are accepted only after they
+  are masked in a same-length parse copy; they remain byte-exact in source.
+  Internal subsets and custom entity declarations stay outside the safe-edit
+  boundary.
 - Script and style text are not exposed as editable body segments.
 - The checked-in fixture contains only self-authored text and no user book,
   secret, copyrighted sample, or remote resource.

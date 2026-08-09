@@ -34,19 +34,70 @@ export function encodeUtf8Xml(
 }
 
 export function parseXml(source: string, context: string): Document {
-  if (/<!DOCTYPE/i.test(source)) {
-    throw new Error(`${context} 包含不允许的 DOCTYPE。`)
-  }
+  const parseSource = maskSafeDoctype(source, context)
   const errors: string[] = []
   const document = new DOMParser({
     onError: (level, message) => {
       if (level !== 'warning') errors.push(message)
     },
-  }).parseFromString(source, 'application/xml')
+  }).parseFromString(parseSource, 'application/xml')
   if (document.documentElement === null || errors.length > 0) {
     throw new Error(`${context} XML 无效：${errors.join('; ') || '缺少根元素'}`)
   }
   return document
+}
+
+function maskSafeDoctype(source: string, context: string): string {
+  const matches = [...source.matchAll(/<!DOCTYPE\b/giu)]
+  if (matches.length === 0) return source
+  if (matches.length > 1) {
+    throw new Error(`${context} 包含多个 DOCTYPE，无法安全解析。`)
+  }
+  const start = matches[0]?.index
+  if (start === undefined) return source
+  const end = findDoctypeEnd(source, start, context)
+  const declaration = source.slice(start, end)
+  if (
+    !/^<!DOCTYPE\s+[A-Za-z_][\w.:-]*(?:\s+(?:SYSTEM\s+(?:"[^"]*"|'[^']*')|PUBLIC\s+(?:"[^"]*"|'[^']*')\s+(?:"[^"]*"|'[^']*')))?\s*>$/isu.test(
+      declaration,
+    )
+  ) {
+    throw new Error(
+      `${context} 包含不安全的 DOCTYPE；不允许内部 DTD 子集或实体声明。`,
+    )
+  }
+  const masked = declaration.replace(/[^\r\n]/gu, ' ')
+  return source.slice(0, start) + masked + source.slice(end)
+}
+
+function findDoctypeEnd(
+  source: string,
+  start: number,
+  context: string,
+): number {
+  let quote: '"' | "'" | null = null
+  for (
+    let index = start + '<!DOCTYPE'.length;
+    index < source.length;
+    index += 1
+  ) {
+    const character = source[index]
+    if (quote !== null) {
+      if (character === quote) quote = null
+      continue
+    }
+    if (character === '"' || character === "'") {
+      quote = character
+      continue
+    }
+    if (character === '[') {
+      throw new Error(
+        `${context} 包含不安全的 DOCTYPE；不允许内部 DTD 子集或实体声明。`,
+      )
+    }
+    if (character === '>') return index + 1
+  }
+  throw new Error(`${context} 的 DOCTYPE 未结束。`)
 }
 
 export function descendantsByLocalName(

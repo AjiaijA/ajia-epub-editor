@@ -1,9 +1,6 @@
-import {
-  DOMParser,
-  type Document,
-  type Element,
-  type Node,
-} from '@xmldom/xmldom'
+import { type Document, type Element, type Node } from '@xmldom/xmldom'
+
+import { parseXml as parsePublicationXml } from '../parser/xml.js'
 
 export interface TextSegment {
   readonly chapterPath: string
@@ -273,12 +270,6 @@ export function escapeXmlText(value: string): string {
 }
 
 function tokenizeXmlSource(source: string): readonly SourceToken[] {
-  if (/<!DOCTYPE/i.test(source)) {
-    throw new Error(
-      'DOCTYPE declarations are outside the safe text-patch boundary',
-    )
-  }
-
   const tokens: SourceToken[] = []
   let offset = 0
   while (offset < source.length) {
@@ -362,22 +353,5 @@ function assertWellFormedXml(source: string): void {
 }
 
 function parseXml(source: string): Document {
-  if (/<!DOCTYPE/i.test(source)) {
-    throw new Error(
-      'DOCTYPE declarations are outside the safe text-patch boundary',
-    )
-  }
-  const errors: string[] = []
-  const parser = new DOMParser({
-    onError: (level, message) => {
-      if (level !== 'warning') errors.push(message)
-    },
-  })
-  const document = parser.parseFromString(source, 'application/xml')
-  if (errors.length > 0 || document.documentElement === null) {
-    throw new Error(
-      `Invalid XML: ${errors.join('; ') || 'missing document element'}`,
-    )
-  }
-  return document
+  return parsePublicationXml(source, 'safe text patch')
 }

@@ -1,21 +1,22 @@
 # Compatibility
 
-Status: V0.1 RC1 automated, deployed for online testing, and accepted in
-Calibre 9.11 and Thorium 3.4.0 on 2026-08-08; Apple Books remains pending.
+Status: V0.1 RC2 compatibility fix under verification on 2026-08-09; RC1 was
+accepted in Calibre 9.11 and Thorium 3.4.0, and Apple Books opens the edited
+smoke fixture.
 
-## V0.1 RC1 application matrix
+## V0.1 RC2 application matrix
 
-| Surface                  | Evidence                                                  | Result               |
-| ------------------------ | --------------------------------------------------------- | -------------------- |
-| Chrome 151 desktop       | Full Playwright open/edit/search/Undo/export/reopen flow  | Pass                 |
-| Chromium 390 px viewport | Export remains visible; no horizontal document overflow   | Pass                 |
-| Runtime network boundary | Every observed request remains on the local test origin   | Pass                 |
-| Search responsiveness    | Dedicated cancellable Worker with fallback unit tests     | Pass                 |
-| Release package          | Versioned static ZIP plus SHA-256 sidecar                 | Pass                 |
-| ajia.site online flow    | Open/edit/export/reopen; every request stays on site      | Pass                 |
-| Apple Books              | Requires macOS hardware/manual import                     | Pending release gate |
-| Calibre 9.11 Viewer      | Viewer load plus user-confirmed NCX label and edited body | Pass                 |
-| Thorium Reader 3.4.0     | Edited fixture opened; user confirmed reader smoke test   | Pass                 |
+| Surface                  | Evidence                                                   | Result       |
+| ------------------------ | ---------------------------------------------------------- | ------------ |
+| Chrome 151 desktop       | Full Playwright open/edit/search/Undo/export/reopen flow   | Pass         |
+| Chromium 390 px viewport | Export remains visible; no horizontal document overflow    | Pass         |
+| Runtime network boundary | Every observed request remains on the local test origin    | Pass         |
+| Search responsiveness    | Dedicated cancellable Worker with fallback unit tests      | Pass         |
+| Release package          | Versioned static ZIP plus SHA-256 sidecar                  | Pass         |
+| ajia.site online flow    | Open/edit/export/reopen; every request stays on site       | Pass         |
+| Apple Books              | User confirms edited fixture opens; detailed check pending | Partial pass |
+| Calibre 9.11 Viewer      | Viewer load plus user-confirmed NCX label and edited body  | Pass         |
+| Thorium Reader 3.4.0     | Edited fixture opened; user confirmed reader smoke test    | Pass         |
 
 ## Phase 4 search, history, and TOC matrix
 
@@ -106,10 +107,25 @@ to test preservation seams, not to represent the full conformance matrix.
 | XML entities            | Existing `&amp;` decodes for editing; replacement `& < >` is safely escaped    | Pass   |
 | Structural preservation | Element/namespace/attribute/comment/PI/CDATA fingerprint unchanged             | Pass   |
 | Stale mapping           | Source-revision mismatch is rejected                                           | Pass   |
-| DTD/entity boundary     | `DOCTYPE` input is rejected from safe text edit                                | Pass   |
+| DTD/entity boundary     | External-only declaration is masked; internal subset/entity remains rejected   | Pass   |
 
 These assertions run under Node.js 24.16.0 with the locked dependency versions.
 The same core modules are TypeScript-checked and built as ES modules.
+
+## Real-book XHTML 1.1 compatibility evidence
+
+The user-reported `龙之雷.epub` was inspected and exercised locally without
+changing or uploading it. All 48 XHTML spine entries contain the standard
+external XHTML 1.1 `DOCTYPE`, with no internal subset or non-XML named entity.
+RC2 opens all 48 with zero `chapter.invalid-xhtml` issues: 47 are safe visual
+edit chapters, while the SVG cover is previewable/read-only.
+
+The Chromium UI displayed chapter 006 and its Chinese body text with zero
+invalid-XML warnings. Whole-book search found “生命故事”. A separate in-memory
+replacement/export/reopen test changed only
+`OEBPS/Text/Dragon_Thunder_split_006.html`; every clean payload remained exact,
+the exported book reopened with zero invalid-XHTML issues, and no copy of the
+user book was written or uploaded.
 
 ## EPUBCheck gate
 
@@ -187,6 +203,10 @@ to the user's Apple device:
 - `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke.epub`
 - `https://ajia.site/tools/epub-editor-test-fixtures/epub2-reader-smoke-edited.epub`
 
+On 2026-08-09 the user confirmed that Apple Books opens the edited fixture.
+The title/TOC/body and close/reopen observations below have not yet been
+reported, so this is recorded as a partial pass rather than a completed gate.
+
 Open the edited fixture in Apple Books and confirm the title “阶段一 EPUB 2
 测试书”, TOC label “RC 阅读器测试目录”, and sentence “这是自建的 EPUB 2 RC
 阅读器测试文字。”. Close the book, reopen it from the Apple Books library, and
@@ -195,13 +215,13 @@ version and pass/fail result; no user-owned EPUB is required for this gate.
 
 ## Not yet claimed
 
-V0.1 RC1 does not yet claim full coverage for BOM package fixtures, ZIP64,
+V0.1 RC2 does not yet claim full coverage for BOM package fixtures, ZIP64,
 legacy CP437 filename encoding, all EPUB namespace variants, deeply malformed
 but recoverable books, media overlays, fixed-layout visual fidelity, SVG/MathML/
 ruby editing, obfuscated fonts, large-book performance, or every CSS construct.
 Fixed layout is detected and warned but not visually certified.
 
-Apple Books remains the final native-reader smoke requirement. V0.1 RC1 also
+Apple Books remains the final native-reader smoke requirement. V0.1 RC2 also
 does not certify fixed-layout fidelity, SVG/MathML
 visual editing, large-book search responsiveness, or ambiguous/structurally
 complex navigation label rewrites. Those cases intentionally remain read-only

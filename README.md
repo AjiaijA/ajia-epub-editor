@@ -6,7 +6,7 @@ Ajia EPUB Editor 是一个纯浏览器端、Local-first、Preserve-first 的轻�
 
 ## 当前状态
 
-阶段 0 至阶段 5 的代码与自动化门禁已经完成。当前候选版本为 **V0.1 RC1**（`0.1.0-rc.1`），用于私有测试和阅读器兼容性确认，尚未正式公开发布。
+阶段 0 至阶段 5 的代码与自动化门禁已经完成。当前候选版本为 **V0.1 RC2**（`0.1.0-rc.2`），用于在线测试和真实 EPUB 兼容性确认，尚未正式公开发布。RC2 增加了对无内部子集的标准 XHTML `DOCTYPE` 的安全兼容。
 
 当前可以：
 
@@ -79,7 +79,7 @@ npm audit
 
 运行 `npm run build && npm run release:package` 后，会在 `artifacts/` 生成：
 
-- `ajia-epub-editor-v0.1.0-rc.1.zip`：可放入任意静态网站目录的版本包；
+- `ajia-epub-editor-v0.1.0-rc.2.zip`：可放入任意静态网站目录的版本包；
 - 同名 `.sha256`：包体完整性校验；
 - `epub2-reader-smoke.epub`：自建、可再分发的阅读器冒烟样本。
 - `epub2-reader-smoke-edited.epub`：带固定目录与正文修订的结果样本。

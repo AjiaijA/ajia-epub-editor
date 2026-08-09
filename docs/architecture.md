@@ -1,6 +1,6 @@
 # Architecture
 
-Status: V0.1 RC1 architecture complete on 2026-08-08.
+Status: V0.1 RC2 architecture updated on 2026-08-09.
 
 ## Phase 1 read pipeline
 
@@ -35,8 +35,10 @@ edit session and export validator have approved a complete candidate.
 
 ### Publication parsing
 
-The package/parser modules decode UTF-8 with BOM detection, reject DTDs, and
-identify XML nodes by local name instead of depending on a fixed prefix. The OPF
+The package/parser modules decode UTF-8 with BOM detection, mask safe
+external-only `DOCTYPE` declarations without loading a DTD, reject internal
+subsets/custom entities, and identify XML nodes by local name instead of
+depending on a fixed prefix. The OPF
 model retains original href strings while resolving safe archive paths for
 lookup. Missing manifest resources and broken spine references become issues
 instead of crashing unrelated readable chapters.
@@ -78,7 +80,8 @@ save source. Encrypted chapters are excluded from source editing.
 parsed DOM text-node paths. Only non-whitespace `body` text outside
 `script`/`style` becomes a revision-bound `TextSegment`. A mapping is rejected
 when tokenizer and parser text counts or decoded values disagree. Script, SVG,
-MathML, DTD, invalid XML, and stale mappings downgrade to preview/source mode.
+MathML, unsafe DTD subsets, invalid XML, and stale mappings downgrade to
+preview/source mode.
 
 The editable preview wraps only verified text nodes with generated segment IDs.
 User input never supplies markup: the UI reads `textContent`, then

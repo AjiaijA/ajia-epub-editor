@@ -69,8 +69,33 @@ describe('safe XHTML text-patch spike', () => {
     ).toThrow('stale')
   })
 
-  it('refuses DTD input outside the safe patch boundary', () => {
-    const source = '<!DOCTYPE html><html><body>text</body></html>'
+  it('patches text around a safe external XHTML doctype without changing it', () => {
+    const doctype =
+      '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"\n  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
+    const source = `${doctype}\n<html><body><p>before <em>inline</em> after</p></body></html>`
+    const segment = findEditableTextSegments(source).at(-1)
+    expect(segment?.decodedText).toBe(' after')
+    if (segment === undefined) throw new Error('Target segment missing')
+
+    const result = applySafeTextPatch(source, segment, ' & <revised>')
+
+    expect(result.source.startsWith(`${doctype}\n`)).toBe(true)
+    expect(result.source).toContain('<em>inline</em> &amp; &lt;revised&gt;')
+    expect(result.source.slice(0, segment.start)).toBe(
+      source.slice(0, segment.start),
+    )
+  })
+
+  it('refuses an internal DTD subset and custom entity declaration', () => {
+    const source =
+      '<!DOCTYPE html [<!ENTITY secret "unsafe">]><html><body>&secret;</body></html>'
+    expect(() => findEditableTextSegments(source)).toThrow('DOCTYPE')
+  })
+
+  it.each([
+    '<!DOCTYPE html><!DOCTYPE html><html><body>text</body></html>',
+    '<!DOCTYPE html PUBLIC "unfinished><html><body>text</body></html>',
+  ])('refuses ambiguous or unterminated doctype input', (source) => {
     expect(() => findEditableTextSegments(source)).toThrow('DOCTYPE')
   })
 })
