@@ -130,6 +130,11 @@ V0.1 RC1 private CI run `31257502823` passed in 1m43s. It added Linux Chromium
 installation, the real-browser release flow, deterministic RC packaging, and
 then repeated the pinned EPUBCheck 5.3.0 and zero-vulnerability gates.
 
+Post-deployment private CI run `31288682223` passed in 1m36s after the
+configurable online Playwright target and deployment evidence were committed.
+It repeated the Linux Chromium, packaging, EPUBCheck 5.3.0, and dependency
+audit gates successfully.
+
 ## Calibre 9.11 smoke evidence
 
 The installed `C:\Program Files\Calibre2\ebook-viewer.exe` opened

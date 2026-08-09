@@ -43,6 +43,9 @@ telemetry, account, AI, public release, PR, or merge was added.
 - The same Playwright flow passed against
   `https://ajia.site/tools/epub-editor/`, including export/reopen and a check
   that every observed request remained on the application origin.
+- Post-deployment private CI run `31288682223` passed in 1m36s, repeating the
+  Linux Chromium, RC packaging, pinned EPUBCheck 5.3.0, and zero-vulnerability
+  gates after the reusable online-test configuration was committed.
 
 ## Reader compatibility status
 
