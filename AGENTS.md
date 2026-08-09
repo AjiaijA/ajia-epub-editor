@@ -12,7 +12,7 @@ ajia.site tools entry, a public GitHub repository, bilingual documentation,
 and ongoing synchronized maintenance. Calibre and Thorium passed; Apple Books
 opens an edited fixture.
 
-Current work is V0.1 release and maintenance. Preserve the English-first
+Current work is the V0.1.1 maintenance patch pending user review. Preserve the English-first
 international interface, complete both English and Chinese documentation for
 user-facing changes, and keep the site deployment, GitHub source, tags, and
 release assets synchronized.

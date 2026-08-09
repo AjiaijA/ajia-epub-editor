@@ -6,14 +6,14 @@ import { expect, test } from '@playwright/test'
 import { assertEpubMimetypeHeader } from '../../src/epub/archive/epubZip.js'
 import { openEpubPublication } from '../../src/epub/parser/publication.js'
 
-test('V0.1 RC edits, searches, undoes, exports, and stays local', async ({
+test('V0.1.1 edits, searches, undoes, exports, and stays local', async ({
   page,
 }) => {
   const requests: string[] = []
   page.on('request', (request) => requests.push(request.url()))
   await page.goto('./')
   const appOrigin = new URL(page.url()).origin
-  await expect(page.getByText('V0.1 · Stable release')).toBeVisible()
+  await expect(page.getByText('V0.1.1 · Stable release')).toBeVisible()
   await expect(
     page.getByRole('heading', { name: 'Open a local EPUB' }),
   ).toBeVisible()

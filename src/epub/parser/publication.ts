@@ -101,17 +101,19 @@ export function openEpubPublication(
           normalizedText(
             descendantsByLocalName(chapterDocument, 'title')[0] ?? null,
           ) || title
-        try {
-          findSafeVisualTextSegments(source, item.archivePath, 0)
-          capability = 'safe'
-        } catch (cause) {
-          issues.push({
-            code: 'chapter.visual-edit-readonly',
-            ...(cause instanceof Error ? { detail: cause.message } : {}),
-            message: `Chapter “${item.href}” contains complex content; it can be previewed but only edited in source mode.`,
-            path: item.archivePath,
-            severity: 'info',
-          })
+        if (!packageDocument.fixedLayout) {
+          try {
+            findSafeVisualTextSegments(source, item.archivePath, 0)
+            capability = 'safe'
+          } catch (cause) {
+            issues.push({
+              code: 'chapter.visual-edit-readonly',
+              ...(cause instanceof Error ? { detail: cause.message } : {}),
+              message: `Chapter “${item.href}” contains complex content; it can be previewed but only edited in source mode.`,
+              path: item.archivePath,
+              severity: 'info',
+            })
+          }
         }
       } catch (cause) {
         capability = 'source-only'

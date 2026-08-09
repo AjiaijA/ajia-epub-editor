@@ -1,6 +1,6 @@
 # Architecture
 
-Status: V0.1 architecture updated on 2026-08-09.
+Status: V0.1.1 maintenance architecture updated on 2026-08-09.
 
 ## International interface boundary
 
@@ -54,6 +54,12 @@ depending on a fixed prefix. The OPF
 model retains original href strings while resolving safe archive paths for
 lookup. Missing manifest resources and broken spine references become issues
 instead of crashing unrelated readable chapters.
+
+The package model retains whether the OPF declares fixed layout. Fixed-layout
+chapters remain available in the isolated Preview and advanced XHTML Source
+surfaces, but never enter Safe edit even when their individual XHTML text could
+otherwise be mapped. This keeps visual text patching within the V0.1 reflowable
+content boundary.
 
 Navigation is normalized to one recursive model. EPUB 3 NAV is authoritative
 when present; NCX is retained as an alternate and compared by normalized target.

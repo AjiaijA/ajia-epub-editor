@@ -3,6 +3,22 @@
 Status: V0.1 deployed and released publicly on 2026-08-09. Calibre 9.11 and
 Thorium 3.4.0 passed, and Apple Books opens the RC1 edited smoke fixture.
 
+V0.1.1 is a local maintenance candidate pending user review. Its regression
+suite disables Safe edit for OPF fixed-layout publications while retaining
+Preview and XHTML Source, clarifies that a nonconforming input `mimetype`
+header is warned and repaired on export rather than forcing read-only mode,
+and covers full-width indentation plus XML self-closing tags.
+
+The local V0.1.1 gate passes formatting, lint, strict type checking, 17 Vitest
+files with 66 tests, production build, coverage, the system-Chrome Playwright
+open/edit/search/Undo/export/reopen flow, and `npm audit` with zero known
+vulnerabilities. Two independent package runs produced the same static archive
+SHA-256:
+`a4da245a494376b37395d18bdad7c920c90c05098de5d3a10d87fd35c2355e1f`.
+EPUBCheck was not rerun locally because this Windows environment has no Java
+runtime; the pinned EPUBCheck 5.3.0 gate remains mandatory in GitHub CI before
+publication.
+
 ## V0.1 application matrix
 
 | Surface                  | Evidence                                                   | Result       |

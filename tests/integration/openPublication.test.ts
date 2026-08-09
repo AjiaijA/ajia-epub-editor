@@ -98,4 +98,34 @@ describe('open EPUB publication', () => {
       'manifest.missing-resource',
     )
   })
+
+  it('disables safe editing for fixed-layout publications', async () => {
+    const entries = new Map(
+      extractArchive(await buildFixtureArchive('epub3-nav')),
+    )
+    const packagePath = 'Books/内容/package.opf'
+    const packageSource = new TextDecoder().decode(entries.get(packagePath))
+    entries.set(
+      packagePath,
+      strToU8(
+        packageSource.replace(
+          '<meta property="dcterms:modified">',
+          '<meta property="rendition:layout">pre-paginated</meta>\n    <meta property="dcterms:modified">',
+        ),
+      ),
+    )
+
+    const publication = openEpubPublication(
+      writeEpubArchive(entries),
+      'fixed-layout.epub',
+    )
+
+    expect(publication.packageDocument.fixedLayout).toBe(true)
+    expect(
+      publication.chapters.map((chapter) => chapter.visualEditCapability),
+    ).toEqual(['readonly', 'readonly'])
+    expect(publication.issues.map((issue) => issue.code)).toContain(
+      'package.fixed-layout',
+    )
+  })
 })

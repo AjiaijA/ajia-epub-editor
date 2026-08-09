@@ -146,7 +146,7 @@ export function SearchReplacePanel({
     >
       <div className="search-panel__heading">
         <div>
-          <p className="eyebrow">Body TextSegment</p>
+          <p className="eyebrow">{text('Body search', '正文查找')}</p>
           <h2>{text('Find & replace', '查找替换')}</h2>
         </div>
         <button className="secondary-button" onClick={onClose} type="button">

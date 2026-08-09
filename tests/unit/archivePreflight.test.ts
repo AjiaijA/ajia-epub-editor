@@ -15,6 +15,21 @@ describe('ZIP central-directory safety preflight', () => {
     ).toBe(true)
   })
 
+  it('describes a nonconforming mimetype header without claiming read-only mode', () => {
+    const archive = zipSync({
+      'before-mimetype.txt': strToU8('first'),
+      mimetype: [strToU8('application/epub+zip'), { level: 0 }],
+    })
+
+    const result = preflightArchive(archive)
+    const issue = result.issues.find(
+      (candidate) => candidate.code === 'archive.nonconforming-mimetype-header',
+    )
+
+    expect(issue?.message).toContain('opening will continue')
+    expect(issue?.message).not.toContain('read-only')
+  })
+
   it.each([
     ['parent traversal', '../outside.xhtml', 'archive.unsafe-path'],
     ['absolute path', '/outside.xhtml', 'archive.unsafe-path'],
